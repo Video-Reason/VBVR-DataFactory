@@ -7,7 +7,6 @@ Distributed data generation system for vm-dataset generators using AWS Lambda.
 - **200 generators** from vm-dataset organization
 - **10K samples** per generator
 - **2 million total samples**
-- **~4 minutes** to generate all (with 1000 Lambda concurrency)
 
 ## Architecture
 
@@ -111,21 +110,24 @@ aws s3 sync s3://vm-dataset-outputs ./results
 }
 ```
 
-## Cost Estimate
+## Output Structure
 
-| Item | Cost |
-|------|------|
-| Lambda (2M samples × 2s × 1GB) | ~$35 |
-| S3 Storage (~340GB) | ~$8/month |
-| SQS (2K messages) | <$0.01 |
-| ECR (~3GB image) | ~$0.30/month |
+Each generator produces samples in the following structure:
 
-## Generator Code Changes Required
+```
+data/questions/{domain}_task/{task_id}/
+├── first_frame.png      # Initial state image (REQUIRED)
+├── final_frame.png      # Target state image (OPTIONAL but recommended)
+├── prompt.txt           # Task prompt (REQUIRED)
+├── rubric.txt           # Scoring rubric (REQUIRED)
+└── ground_truth.mp4     # Solution video (OPTIONAL)
+```
 
-Each generator's `core/base_generator.py` needs:
+Lambda renames `task_id` with global index based on `start_index`, so S3 output will be:
 
-1. Add `start_index` parameter support
-2. Use per-task seed: `random.seed(base_seed + index)`
+```
+s3://vm-dataset-outputs/{generator}/data/questions/{domain}_task/{global_task_id}/...
+```
 
 ## File Structure
 
