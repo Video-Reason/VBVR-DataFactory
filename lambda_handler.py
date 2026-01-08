@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import re
 import gc
+import tarfile
 import boto3
 from pathlib import Path
 
@@ -58,7 +59,8 @@ def process_task(task):
     BATCH_SIZE = 100  # Process 100 samples at a time
     total_uploaded = 0
     all_sample_ids = []
-    
+    all_tar_files = []
+
     if num_samples > BATCH_SIZE:
         print(f"Large batch detected ({num_samples} samples). Processing in batches of {BATCH_SIZE}")
         
@@ -79,7 +81,9 @@ def process_task(task):
             
             total_uploaded += batch_result['samples_uploaded']
             all_sample_ids.extend(batch_result['sample_ids'])
-            
+            if batch_result.get('tar_file'):
+                all_tar_files.append(batch_result['tar_file'])
+
             # Force garbage collection after each batch
             gc.collect()
             print(f"Batch complete. Total uploaded so far: {total_uploaded}/{num_samples}")
@@ -87,11 +91,16 @@ def process_task(task):
         return {
             'generator': task_type,
             'samples_uploaded': total_uploaded,
-            'sample_ids': all_sample_ids
+            'sample_ids': all_sample_ids,
+            'tar_files': all_tar_files
         }
     else:
         # Small batch, process normally
-        return process_batch(task_type, num_samples, start_index, seed, 0)
+        result = process_batch(task_type, num_samples, start_index, seed, 0)
+        # Convert single tar_file to tar_files list for consistency
+        if result.get('tar_file'):
+            result['tar_files'] = [result.pop('tar_file')]
+        return result
 
 
 def process_batch(task_type, num_samples, start_index, seed, batch_num):
@@ -195,7 +204,8 @@ def process_batch(task_type, num_samples, start_index, seed, batch_num):
         questions_dir = output_path
     
     uploaded_samples = []
-    
+    tar_file = None
+
     if questions_dir and questions_dir.exists():
         print(f"Using questions directory: {questions_dir}")
         # Find all domain_task directories (recursively if needed)
@@ -232,12 +242,14 @@ def process_batch(task_type, num_samples, start_index, seed, batch_num):
                 
                 # Process tasks in order, mapping to global IDs starting from start_index
                 local_index = 0
+                renamed_samples = []
+
                 for task_id_dir in task_dirs:
                     if not task_id_dir.is_dir():
                         continue
-                    
+
                     original_task_id = task_id_dir.name
-                    
+
                     # Quick check if directory has task files (without loading all)
                     has_files = False
                     try:
@@ -255,7 +267,7 @@ def process_batch(task_type, num_samples, start_index, seed, batch_num):
                     except Exception as e:
                         print(f"Error checking files in {task_id_dir}: {e}")
                         continue
-                    
+
                     if not has_files:
                         print(f"Skipping empty directory: {task_id_dir}")
                         # Clean up empty directory
@@ -264,44 +276,55 @@ def process_batch(task_type, num_samples, start_index, seed, batch_num):
                         except:
                             pass
                         continue
-                    
+
                     # Only map to global ID if directory has files
                     # Map to global ID: start_index + local_index
                     global_task_id_int = start_index + local_index
                     # Format as zero-padded 5-digit string (e.g., 1 -> "00001", 12 -> "00012", 123 -> "00123")
                     sample_id = f"{global_task_id_int:05d}"
-                    local_index += 1
-                    
+
                     print(f"Mapping local task {original_task_id} to global ID {sample_id} (start_index={start_index})")
-                    
-                    found_any = True
-                    print(f"Processing task: {sample_id}")
-                    
-                    # Upload all files in this task_id directory to S3
-                    # Files will be deleted during upload
-                    s3_prefix = f"data/v1/{task_type}/{sample_id}/"
+
+                    # Rename directory to global sample_id
+                    new_dir = task_id_dir.parent / sample_id
                     try:
-                        upload_count = upload_directory_to_s3(task_id_dir, OUTPUT_BUCKET, s3_prefix)
-                        
-                        uploaded_samples.append({
-                            'sample_id': sample_id,
-                            'files_uploaded': upload_count
-                        })
-                        
-                        print(f"Uploaded {upload_count} files for sample {sample_id}")
-                        
-                        # Delete the now-empty directory
-                        try:
-                            task_id_dir.rmdir()
-                        except Exception as e:
-                            # Directory might not be empty or already deleted
-                            pass
-                        
-                        # Force garbage collection after each sample to free memory
-                        if local_index % 10 == 0:
-                            gc.collect()
+                        task_id_dir.rename(new_dir)
+                        renamed_samples.append(sample_id)
+                        local_index += 1
+                        found_any = True
+                        print(f"Renamed {original_task_id} to {sample_id}")
                     except Exception as e:
-                        print(f"Error processing {sample_id}: {e}")
+                        print(f"Error renaming {task_id_dir} to {new_dir}: {e}")
+                        raise
+
+                # After renaming all directories, create tar archive and upload
+                if renamed_samples:
+                    end_index = start_index + len(renamed_samples) - 1
+                    tar_filename = f"{task_type}_{start_index}_{end_index}.tar.gz"
+                    tar_path = f"/tmp/{tar_filename}"
+
+                    # Create tar archive from domain_task_dir
+                    try:
+                        create_tar_archive(str(domain_task_dir), tar_path)
+
+                        # Upload to S3
+                        s3_key = f"data/v1/{task_type}/{tar_filename}"
+                        upload_tar_to_s3(tar_path, OUTPUT_BUCKET, s3_key)
+
+                        # Record uploaded samples
+                        for sample_id in renamed_samples:
+                            uploaded_samples.append({
+                                'sample_id': sample_id,
+                                'files_uploaded': 0  # Files are in tar now
+                            })
+
+                        print(f"Created and uploaded tar with {len(renamed_samples)} samples")
+                        tar_file = tar_filename
+
+                        # Force garbage collection
+                        gc.collect()
+                    except Exception as e:
+                        print(f"Error creating/uploading tar: {e}")
                         raise
         
         if not found_any:
@@ -333,7 +356,8 @@ def process_batch(task_type, num_samples, start_index, seed, batch_num):
     return {
         'generator': task_type,
         'samples_uploaded': len(uploaded_samples),
-        'sample_ids': [s['sample_id'] for s in uploaded_samples]
+        'sample_ids': [s['sample_id'] for s in uploaded_samples],
+        'tar_file': tar_file
     }
 
 
@@ -381,3 +405,48 @@ def upload_directory_to_s3(local_dir, bucket, s3_prefix):
             print(f"Warning: Failed to delete {file_path}: {e}")
     
     return upload_count
+
+
+def create_tar_archive(source_dir, tar_path):
+    """
+    Create a tar.gz archive from a directory.
+
+    Args:
+        source_dir: Path to the source directory to archive
+        tar_path: Path where the tar.gz file will be created
+
+    Returns:
+        Path to the created tar.gz file
+    """
+    source_path = Path(source_dir)
+    with tarfile.open(tar_path, 'w:gz') as tar:
+        for item in source_path.iterdir():
+            tar.add(str(item), arcname=item.name)
+    print(f"Created tar archive: {tar_path}")
+    return tar_path
+
+
+def upload_tar_to_s3(tar_path, bucket, s3_key):
+    """
+    Upload a tar file to S3 and delete the local file after successful upload.
+
+    Args:
+        tar_path: Path to the local tar file
+        bucket: S3 bucket name
+        s3_key: S3 key (full path including filename)
+
+    Returns:
+        S3 URI of the uploaded file
+    """
+    s3.upload_file(str(tar_path), bucket, s3_key)
+    s3_uri = f"s3://{bucket}/{s3_key}"
+    print(f"Uploaded tar to: {s3_uri}")
+
+    # Clean up local tar file
+    try:
+        os.remove(tar_path)
+        print(f"Deleted local tar file: {tar_path}")
+    except Exception as e:
+        print(f"Warning: Failed to delete local tar file {tar_path}: {e}")
+
+    return s3_uri
