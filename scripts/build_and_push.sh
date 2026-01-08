@@ -5,7 +5,7 @@ set -e
 
 # Configuration - UPDATE THESE
 AWS_ACCOUNT_ID="${AWS_ACCOUNT_ID:-YOUR_ACCOUNT_ID}"
-AWS_REGION="${AWS_REGION:-us-west-2}"
+AWS_REGION="${AWS_REGION:-us-east-2}"
 REPO_NAME="vm-dataset-generator"
 
 IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME"
