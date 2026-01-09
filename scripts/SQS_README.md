@@ -16,10 +16,10 @@ This directory contains scripts for managing SQS-based task distribution:
 
 ```bash
 # Required: Set SQS queue URL
-export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/956728988776/vm-dataset-tasks"
+export SQS_QUEUE_URL="<your-queue-url>"  # From CDK deploy output
 
 # Optional: Set DLQ URL for monitoring
-export SQS_DLQ_URL="https://sqs.us-east-2.amazonaws.com/956728988776/vm-dataset-tasks-dlq"
+export SQS_DLQ_URL="<your-dlq-url>"  # From CDK deploy output
 
 # Optional: Set generators path (default: ../generators)
 export GENERATORS_PATH="../generators"
@@ -97,8 +97,9 @@ python submit_tasks.py \
 |----------|-------------|---------|
 | `--generator` | Generator name or "all" | *required* |
 | `--samples` | Samples per generator | 10000 |
-| `--batch-size` | Samples per Lambda task | 1000 |
-| `--seed` | Random seed | 42 |
+| `--batch-size` | Samples per Lambda task | 100 |
+| `--seed` | Random seed | random |
+| `--output-format` | Output format: "files" or "tar" | files |
 | `--dry-run` | Test without sending | false |
 | `--verbose`, `-v` | Enable verbose output | false |
 
@@ -116,7 +117,7 @@ Configuration:
   • Tasks per generator: 10
   • Total tasks: 2,000
   • Random seed: 42
-  • Queue URL: https://sqs.us-east-2.amazonaws.com/.../vm-dataset-tasks
+  • Queue URL: https://sqs.us-east-2.amazonaws.com/.../vm-dataset-pipeline-queue
 
 Generators: 100%|████████████████| 200/200 [05:23<00:00,  1.62s/gen]
 
@@ -170,7 +171,7 @@ python sqs_monitor.py --watch --interval 5
 
 2026-01-07 11:30:45
 
-📊 Main Queue (vm-dataset-tasks)
+📊 Main Queue (vm-dataset-pipeline-queue)
 ────────────────────────────────────────────────────────────
   Waiting:          1,234 messages
   Processing:         156 messages
@@ -258,7 +259,7 @@ Submit tasks for all 200 generators (2 million samples):
 
 ```bash
 # 1. Set environment
-export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/956728988776/vm-dataset-tasks"
+export SQS_QUEUE_URL="<your-queue-url>"  # From CDK deploy output
 
 # 2. Test with dry run first
 python submit_tasks.py --generator all --samples 10000 --dry-run
@@ -370,7 +371,7 @@ This creates:
 
 **Solution:**
 ```bash
-export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/956728988776/vm-dataset-tasks"
+export SQS_QUEUE_URL="<your-queue-url>"  # From CDK deploy output
 ```
 
 ### Issue: Messages not being processed

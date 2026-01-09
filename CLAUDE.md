@@ -11,6 +11,7 @@ AWS Lambda pipeline for generating VM dataset samples. Uses SQS for task distrib
 - AWS CDK for infrastructure
 - pytest for testing
 - Ruff for linting/formatting
+- pre-commit for git hooks
 
 ## Commands
 
@@ -18,6 +19,7 @@ AWS Lambda pipeline for generating VM dataset samples. Uses SQS for task distrib
 
 ```bash
 uv sync --extra dev --extra cdk          # Install dependencies
+uv run pre-commit install                 # Install git hooks
 uv run pytest                             # Run tests
 uv run ruff check src/ scripts/           # Lint
 uv run ruff format src/ scripts/          # Format
@@ -32,6 +34,7 @@ uv run python scripts/submit_tasks.py ... # Run scripts
 - Use f-strings for string formatting
 - Use `logging` module instead of `print()` in `src/`
 - No Chinese text in code or documentation
+- All content in packages must be in English
 
 ## Project Structure
 
@@ -55,6 +58,14 @@ The Docker image includes all generator dependencies because a single Lambda ins
 - Run `uv run pytest` after making changes
 - New features require tests
 - Tests are in `tests/unit/`
+
+## Deployment
+
+After code changes, redeploy Lambda:
+
+```bash
+uv run cdk deploy --profile <profile>    # Rebuilds Docker image and updates Lambda
+```
 
 ## Git
 

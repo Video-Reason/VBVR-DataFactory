@@ -103,6 +103,9 @@ cd vm-dataset-pipeline
 # Install dependencies with UV
 uv sync --extra dev --extra cdk
 
+# Install pre-commit hooks
+uv run pre-commit install
+
 # Setup environment variables
 cp .env.example .env
 # Edit .env with your settings:
@@ -162,7 +165,17 @@ SQS_QUEUE_URL=https://sqs.us-east-2.amazonaws.com/xxx/vm-dataset-pipeline-queue
 SQS_DLQ_URL=https://sqs.us-east-2.amazonaws.com/xxx/vm-dataset-pipeline-dlq
 ```
 
-### 4. Submit Tasks
+### 4. Update Lambda (After Code Changes)
+
+After modifying code in `src/`, redeploy to update Lambda:
+
+```bash
+uv run cdk deploy
+```
+
+This rebuilds the Docker image and updates the Lambda function automatically.
+
+### 5. Submit Tasks
 
 ```bash
 export SQS_QUEUE_URL=https://sqs.xxx.amazonaws.com/xxx/vm-dataset-pipeline-queue
@@ -174,7 +187,7 @@ python scripts/submit_tasks.py --generator all --samples 10000
 python scripts/submit_tasks.py --generator chess-task-data-generator --samples 10000
 ```
 
-### 5. Download Results
+### 6. Download Results
 
 ```bash
 aws s3 sync s3://vm-dataset-xxx ./results
@@ -257,7 +270,7 @@ python scripts/push_dlq_to_sqs.py --dlq-dir DLQ --dry-run
 
 | Parameter | Value |
 |-----------|-------|
-| Visibility Timeout | 900 seconds |
+| Visibility Timeout | 960 seconds (16 min) |
 | Max Retries | 3 |
 
 ### Task Format
