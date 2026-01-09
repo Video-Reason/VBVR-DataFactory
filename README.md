@@ -53,7 +53,12 @@ vm-dataset-pipeline/
 │   ├── sqs_monitor.py            # Monitor queue status
 │   ├── sqs_utils.py              # SQS tools (purge/count/peek)
 │   ├── download_dlq_messages.py  # Download DLQ messages
-│   └── push_dlq_to_sqs.py        # Resend DLQ messages
+│   ├── push_dlq_to_sqs.py        # Resend DLQ messages
+│   ├── test_server.py            # Local test Web UI server
+│   ├── local_test.py             # CLI for local testing
+│   └── static/                   # Web UI static files
+│       ├── index.html
+│       └── app.js
 ├── Dockerfile                    # Lambda container image
 ├── pyproject.toml                # UV + Python project config
 ├── cdk.json                      # CDK config
@@ -255,6 +260,38 @@ python scripts/push_dlq_to_sqs.py --dlq-dir DLQ
 
 # Dry run
 python scripts/push_dlq_to_sqs.py --dlq-dir DLQ --dry-run
+```
+
+### Local Testing
+
+#### Web UI (Recommended)
+
+```bash
+# Start test server
+uv run python scripts/test_server.py
+
+# Open http://localhost:8000 in browser
+```
+
+Features:
+- Download generator repos from GitHub (with status: Up-to-date/Outdated/Not downloaded)
+- Select and test multiple generators
+- Real-time progress tracking
+- Expandable error details for failed tests
+- Export results to JSON/CSV
+- Sortable results table
+
+#### Command Line
+
+```bash
+# Test a single generator
+uv run python scripts/local_test.py --generator G-1_object_trajectory_data-generator --samples 5
+
+# Test all generators
+uv run python scripts/local_test.py --generator all --samples 3
+
+# With specific seed
+uv run python scripts/local_test.py --generator G-1_object_trajectory_data-generator --samples 5 --seed 42
 ```
 
 ## Configuration

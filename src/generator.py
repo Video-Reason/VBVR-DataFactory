@@ -22,11 +22,16 @@ def detect_output_arg(generator_path: str) -> str:
     Returns:
         The output argument name ('--output-dir' or '--output')
     """
-    generate_script = os.path.join(generator_path, "examples", "generate.py")
+    # Use relative path since cwd is set to generator_path
+    generate_script = os.path.join("examples", "generate.py")
+    # Set PYTHONPATH to generator directory so it imports its own src module
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.path.abspath(generator_path)
     try:
         result = subprocess.run(
             [sys.executable, generate_script, "--help"],
             cwd=generator_path,
+            env=env,
             capture_output=True,
             text=True,
             timeout=30,
@@ -75,7 +80,11 @@ def run_generator(
     logger.info(f"Running command: {' '.join(cmd)}")
     logger.info(f"Working directory: {generator_path}")
 
-    result = subprocess.run(cmd, cwd=generator_path, check=True, capture_output=True, text=True)
+    # Set PYTHONPATH to generator directory so it imports its own src module
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.path.abspath(generator_path)
+
+    result = subprocess.run(cmd, cwd=generator_path, env=env, check=True, capture_output=True, text=True)
 
     logger.info("Generator completed successfully")
     if result.stdout:

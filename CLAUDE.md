@@ -40,7 +40,8 @@ uv run python scripts/submit_tasks.py ... # Run scripts
 
 ```
 src/           # Lambda source code (handler, generator, uploader, utils)
-scripts/       # CLI utilities (submit_tasks, sqs_monitor, etc.)
+scripts/       # CLI utilities (submit_tasks, sqs_monitor, test_server, etc.)
+  static/      # Web UI static files (index.html, app.js)
 cdk/           # CDK infrastructure code
 tests/         # pytest tests
 generators/    # Generator repos (gitignored, downloaded via scripts)
@@ -58,6 +59,13 @@ The Docker image includes all generator dependencies because a single Lambda ins
 - Run `uv run pytest` after making changes
 - New features require tests
 - Tests are in `tests/unit/`
+
+## Local Generator Testing
+
+```bash
+uv run python scripts/test_server.py    # Web UI at http://localhost:8000
+uv run python scripts/local_test.py     # CLI testing
+```
 
 ## Deployment
 
