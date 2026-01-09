@@ -12,6 +12,9 @@ from aws_cdk import (
     aws_ecr_assets as ecr_assets,
 )
 from aws_cdk import (
+    aws_iam as iam,
+)
+from aws_cdk import (
     aws_lambda as lambda_,
 )
 from aws_cdk import (
@@ -88,6 +91,14 @@ class PipelineStack(Stack):
 
         # Grant Lambda permissions
         self.output_bucket.grant_read_write(self.lambda_function)
+
+        # Grant CloudWatch metrics permission
+        self.lambda_function.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=["cloudwatch:PutMetricData"],
+                resources=["*"],
+            )
+        )
 
         # Add SQS trigger (max_concurrency limits concurrent Lambda invocations from SQS)
         sqs_max_concurrency = self.node.try_get_context("sqsMaxConcurrency") or 990
