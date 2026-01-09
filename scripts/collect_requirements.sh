@@ -3,6 +3,12 @@
 
 set -e
 
+if ! command -v gh &> /dev/null; then
+    echo "Error: GitHub CLI (gh) is not installed."
+    echo "Install it from: https://cli.github.com/"
+    exit 1
+fi
+
 ORG="vm-dataset"
 OUTPUT_FILE="../requirements-all.txt"
 TEMP_DIR=$(mktemp -d)

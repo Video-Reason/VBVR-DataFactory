@@ -537,7 +537,6 @@ Part of VM Dataset Pipeline project.
 
 ---
 
-**Last Updated:** 2026-01-07  
-**Maintainer:** Your team  
+**Last Updated:** 2026-01-07
+**Maintainer:** Your team
 **Version:** 2.0
-

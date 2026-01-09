@@ -17,3 +17,7 @@ venv/
 
 # Temp
 *.raw
+
+# CDK
+cdk.out/
+cdk.context.json

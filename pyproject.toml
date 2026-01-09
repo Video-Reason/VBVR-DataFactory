@@ -1,0 +1,53 @@
+[project]
+name = "vm-dataset-pipeline"
+version = "0.1.0"
+description = "AWS Lambda pipeline for generating VM dataset samples"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.34.0,<2.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-cov>=4.1.0,<6.0.0",
+    "pytest-mock>=3.12.0,<4.0.0",
+    "moto[s3]>=5.0.0,<6.0.0",
+    "ruff>=0.1.0,<1.0.0",
+]
+cdk = [
+    "aws-cdk-lib>=2.170.0,<3.0.0",
+    "constructs>=10.0.0,<11.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "cdk"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src", "cdk"]

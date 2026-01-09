@@ -13,7 +13,7 @@ RUN pip install --upgrade pip && \
 # All generator code
 COPY generators/ /opt/generators/
 
-# Lambda handler
-COPY lambda_handler.py .
+# Lambda handler module
+COPY src/ ./src/
 
-CMD ["lambda_handler.handler"]
+CMD ["src.handler.handler"]
