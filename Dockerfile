@@ -14,6 +14,6 @@ RUN pip install --upgrade pip && \
 COPY generators/ /opt/generators/
 
 # Lambda handler module
-COPY src/ ./src/
+COPY vmdatawheel/ ./vmdatawheel/
 
-CMD ["src.handler.handler"]
+CMD ["vmdatawheel.lambda_handler.handler.handler"]

@@ -1,11 +1,15 @@
 [project]
-name = "vm-dataset-pipeline"
-version = "0.1.0"
-description = "AWS Lambda pipeline for generating VM dataset samples"
+name = "vmdatawheel"
+version = "1.0.0"
+description = "Distributed data generation system for vm-dataset generators using AWS Lambda"
 readme = "README.md"
 requires-python = ">=3.11"
+license = {text = "Apache-2.0"}
+keywords = ["aws", "lambda", "data-generation", "sqs", "pipeline"]
 dependencies = [
     "boto3>=1.34.0,<2.0.0",
+    "pydantic>=2.10.0,<3.0.0",
+    "pydantic-settings>=2.7.0,<3.0.0",
     "python-dotenv>=1.0.0,<2.0.0",
 ]
 
@@ -14,11 +18,9 @@ dev = [
     "pytest>=8.0.0,<9.0.0",
     "pytest-cov>=4.1.0,<6.0.0",
     "pytest-mock>=3.12.0,<4.0.0",
-    "moto[s3]>=5.0.0,<6.0.0",
+    "moto[s3,sqs]>=5.0.0,<6.0.0",
     "ruff>=0.1.0,<1.0.0",
-    "fastapi>=0.100.0,<1.0.0",
-    "uvicorn>=0.20.0,<1.0.0",
-    "psutil>=5.9.0",
+    "mypy>=1.8.0,<2.0.0",
 ]
 cdk = [
     "aws-cdk-lib>=2.170.0,<3.0.0",
@@ -54,4 +56,4 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src", "cdk"]
+packages = ["vmdatawheel"]

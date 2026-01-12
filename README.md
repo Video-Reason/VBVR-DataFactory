@@ -1,489 +1,486 @@
-<!-- OPTIONAL BANNER -->
-<p align="center">
-  <!-- Put a banner at assets/banner.png if you want -->
-  <!-- <img src="assets/banner.png" alt="VM Data Wheel banner" width="900" /> -->
-</p>
+# VM Data Wheel
 
-<h1 align="center">VM Data Wheel</h1>
+Distributed data generation system for vm-dataset generators using AWS Lambda.
 
-<p align="center">
-  <b>Distributed data generation system for vm-dataset generators using AWS Lambda.</b>
-</p>
-
-<p align="center">
-  <a href="https://github.com/vm-dataset">
-    <img alt="vm-dataset generators" src="https://img.shields.io/badge/generators-vm--dataset-181717?logo=github&logoColor=white" />
-  </a>
-  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11+-3776ab?logo=python&logoColor=white" />
-  <img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-green" />
-  <img alt="AWS Lambda" src="https://img.shields.io/badge/AWS-Lambda-FF9900?logo=awslambda&logoColor=white" />
-</p>
-
-<p align="center">
-  <a href="#-one-click-deploy">Deploy</a> •
-  <a href="#-what-is-vm-data-wheel">What is it?</a> •
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="#-example-generators">Examples</a> •
-  <a href="#-documentation">Docs</a>
-</p>
-
-<br>
+**Pip-installable package with Pydantic validation and modular architecture.**
 
 ---
 
+## 🚀 Getting Started
 
-<div align="center">
-
-## ☁️ One-Click Deploy
-
-**Deploy to your AWS account in minutes — no installation required.**
-
-<br>
-
-<a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=vm-data-wheel&templateURL=https://raw.githubusercontent.com/Video-Reason/VMDataWheel/main/cloudformation/VmDatasetPipelineStack.template.json">
-  <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png" alt="Launch Stack" height="40" />
-</a>
-
-<br>
-
-> ⚠️ **Stack name must be lowercase** (e.g., `vm-data-wheel`). Uppercase letters will cause deployment to fail.
-
-<br>
-
-| 🪣 S3 Bucket | 📬 SQS Queue | ⚡ Lambda (3GB) | 🔁 DLQ |
-|:------------:|:------------:|:----------------:|:------:|
-| Output storage | Task queue | 50+ generators | Auto-retry |
-
-</div>
-
-<details>
-<summary><b>📋 After deployment — How to use</b></summary>
-
-<br>
-
-**1. Get outputs** from CloudFormation console → Outputs tab:
-- `QueueUrl` — Your SQS queue URL
-- `BucketName` — Your S3 output bucket
-
-**2. Submit tasks:**
-```bash
-# Install boto3
-pip install boto3
-
-# Submit 10K samples for all generators
-python scripts/submit_tasks.py \
-  --queue-url <YOUR_QUEUE_URL> \
-  --generator all \
-  --samples 10000
-```
-
-**3. Download results:**
-```bash
-aws s3 sync s3://<YOUR_BUCKET_NAME> ./results
-```
-
-</details>
-
-<br>
-
----
-
-## 🎯 What is VM Data Wheel?
-
-VM Data Wheel is a **scalable data generation framework** that produces synthetic video-reasoning samples for training and evaluating video generation models. Submit tasks to SQS, and Lambda workers generate samples in parallel — from 10K to millions of samples with zero infrastructure management.
-
-```python
-# Generate 10K samples for all 50+ generators
-python scripts/submit_tasks.py --generator all --samples 10000
-
-# Monitor progress
-python scripts/sqs_monitor.py --watch
-
-# Download results
-aws s3 sync s3://vm-dataset-xxx ./results
-```
-
-Each generated sample includes:
-
-```text
-{task_id}/
-├── first_frame.png      # Initial state image
-├── final_frame.png      # Target state image
-├── prompt.txt           # Task description
-└── ground_truth.mp4     # Solution video (optional)
-```
-
-<br>
-
----
-
-## ✨ Why use this?
-
-1. **Infinite scale with zero ops**
-   - Generate 10K to 1M+ samples using serverless Lambda
-   - No GPU clusters to manage, no infrastructure headaches
-   - Pay only for what you use
-
-2. **Perfect reproducibility**
-   - Deterministic generation with seed control
-   - Same seed = same data, always
-   - Version-controlled generators
-
-3. **50+ diverse task types**
-   - Physics simulations, puzzles, spatial reasoning
-   - Object permanence, counting, logic gates
-   - Easy to add new generators
-
-4. **Production-ready pipeline**
-   - Dead-letter queue for failed tasks
-   - Automatic retries with exponential backoff
-   - Real-time monitoring dashboard
-
-<br>
-
----
-
-## 🚀 Quick Start
-> **Note:** This section is for developers who want to modify the code.
-
-<br>
-
-### Prerequisites
-
-| Tool | Installation |
-|------|--------------|
-| Python 3.11+ | — |
-| [UV](https://github.com/astral-sh/uv) | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| [AWS CLI](https://aws.amazon.com/cli/) | `brew install awscli` |
-| [GitHub CLI](https://cli.github.com/) | `brew install gh` |
-| Docker | [Download](https://www.docker.com/products/docker-desktop/) |
-
-### Installation
+### Step 1: Install Prerequisites
 
 ```bash
-# Clone
+# Install Python 3.11+ (if not already installed)
+python3 --version  # Should be 3.11 or higher
+
+# Install UV (Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install AWS CLI
+brew install awscli  # macOS
+# or: pip install awscli
+
+# Install GitHub CLI
+brew install gh  # macOS
+# or: https://cli.github.com/
+
+# Install Docker Desktop
+# Download from: https://www.docker.com/products/docker-desktop/
+```
+
+### Step 2: Configure AWS
+
+```bash
+# Configure AWS credentials
+aws configure
+
+# It will ask for:
+# - AWS Access Key ID
+# - AWS Secret Access Key
+# - Default region (use: us-east-2)
+# - Default output format (use: json)
+```
+
+### Step 3: Clone and Install
+
+```bash
+# Clone the repository
 git clone https://github.com/Video-Reason/VMDataWheel
 cd VMDataWheel
 
-# Install dependencies
-uv sync --extra dev --extra cdk
-
-# Download generators
-cd scripts && ./download_all_repos.sh && cd ..
+# Install the package with all dependencies
+pip install -e ".[dev,cdk]"
 ```
 
-### Local Testing
+### Step 4: Download Generators
 
 ```bash
-# Start Web UI
-uv run python scripts/test_server.py
-# Open http://localhost:8000
+# Authenticate with GitHub (first time only)
+gh auth login
+
+# Download all generator repositories
+cd scripts
+./download_all_repos.sh
+cd ..
+
+# This downloads 50+ generators to ./generators/
 ```
 
-### Deploy to AWS
+### Step 5: Deploy Infrastructure to AWS
 
 ```bash
-export AWS_PROFILE=your-profile-name
+# Make sure Docker Desktop is running first!
 
-# Bootstrap (first time only)
+# Navigate to deployment directory
+cd deployment
+
+# Bootstrap CDK (first time only)
 uv run cdk bootstrap
 
-# Deploy
+# Deploy the infrastructure
 uv run cdk deploy
+
+# Wait for deployment to complete (~5-10 minutes)
+# Save the outputs that appear at the end:
+#   - QueueUrl
+#   - BucketName
+#   - DlqUrl
 ```
 
-<br>
+**After deployment completes, you'll see:**
+```
+Outputs:
+VmDatasetPipelineStack.QueueUrl = https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-queue
+VmDatasetPipelineStack.BucketName = vm-dataset-123456789-us-east-2
+VmDatasetPipelineStack.DlqUrl = https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-dlq
+```
+
+**Copy these values!** You'll need them in the next step.
+
+### Step 6: Set Environment Variables
+
+```bash
+# Go back to project root
+cd ..
+
+# Set the queue URL and bucket from CDK outputs
+export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-queue"
+export OUTPUT_BUCKET="vm-dataset-123456789-us-east-2"
+
+# Optional: Set DLQ URL for monitoring failed tasks
+export SQS_DLQ_URL="https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-dlq"
+
+# Optional: Save to .env file for persistence
+echo "SQS_QUEUE_URL=$SQS_QUEUE_URL" > .env
+echo "OUTPUT_BUCKET=$OUTPUT_BUCKET" >> .env
+echo "SQS_DLQ_URL=$SQS_DLQ_URL" >> .env
+```
+
+### Step 7: Submit Your First Tasks
+
+```bash
+# Test with a single generator (100 samples)
+python scripts/submit.py \
+  --generator G-1_object_trajectory_data-generator \
+  --samples 100 \
+  --batch-size 10
+
+# This will:
+# - Create 10 SQS messages (10 samples each)
+# - Send them to the queue
+# - Lambda will automatically process them
+```
+
+### Step 8: Monitor Progress
+
+```bash
+# Watch queue status in real-time
+python scripts/monitor.py --watch
+
+# You'll see:
+# - Messages waiting in queue
+# - Messages being processed
+# - Progress percentage
+```
+
+### Step 9: Download Results
+
+```bash
+# Once processing is complete, download the generated data
+aws s3 sync s3://vm-dataset-123456789-us-east-2/data/v1/ ./results/
+
+# Results structure:
+# results/
+# └── G-1_object_trajectory_data-generator/
+#     ├── 00000/
+#     │   ├── first_frame.png
+#     │   ├── final_frame.png
+#     │   ├── prompt.txt
+#     │   └── ground_truth.mp4
+#     ├── 00001/
+#     └── ...
+```
 
 ---
 
-## 🧩 Example Generators
+## 🎯 Common Workflows
 
-Expand each category below to see example generators:
+### Generate Large Dataset (All Generators)
 
-<details>
-<summary><b>🧠 Puzzles & Logic</b></summary>
+```bash
+# Submit 10,000 samples for ALL generators
+python scripts/submit.py \
+  --generator all \
+  --samples 10000 \
+  --batch-size 100 \
+  --seed 42
 
-| Generator | Description |
-|-----------|-------------|
-| `O-41_nonogram` | Solve nonogram puzzles from row/column hints |
-| `O-sudoku` | Complete Sudoku grids |
-| `O-maze` | Find path through mazes |
-| `O-logic_gates` | Evaluate logic circuit outputs |
+# Monitor progress
+python scripts/monitor.py --watch --interval 10
 
-</details>
+# This creates 100,000+ SQS messages
+# Lambda processes them in parallel (up to 990 concurrent)
+# Estimated time: ~2-4 hours depending on generators
+```
 
-<details>
-<summary><b>⚡ Physics & Motion</b></summary>
+### Generate Specific Generator Types
 
-| Generator | Description |
-|-----------|-------------|
-| `G-object_trajectory` | Predict object motion paths |
-| `G-collision` | Simulate object collisions |
-| `G-gravity` | Objects falling under gravity |
-| `G-bounce` | Ball bouncing physics |
+```bash
+# Only O- generators (puzzles, logic)
+# First, edit scripts/download_all_repos.sh line 20:
+# Change to: grep -E '^O-([1-9]|[1-4][0-9]|50)_'
+cd scripts && ./download_all_repos.sh && cd ..
 
-</details>
+# Then submit tasks
+python scripts/submit.py --generator all --samples 5000
+```
 
-<details>
-<summary><b>👁️ Spatial & Visual</b></summary>
+### Check for Failed Tasks
 
-| Generator | Description |
-|-----------|-------------|
-| `O-42_object_permanence` | Track objects behind occluders |
-| `O-43_object_subtraction` | Count remaining objects |
-| `O-shape_transform` | Identify shape transformations |
-| `O-color_mixing` | Predict color combinations |
+```bash
+# Monitor the Dead Letter Queue
+python scripts/monitor.py --watch
 
-</details>
-
-<details>
-<summary><b>🔢 Counting & Math</b></summary>
-
-| Generator | Description |
-|-----------|-------------|
-| `O-counting` | Count objects in scene |
-| `O-arithmetic` | Visual arithmetic problems |
-| `O-sequence` | Complete number sequences |
-
-</details>
-
-<br>
+# Look at the DLQ section
+# If you see failed messages, they need investigation
+```
 
 ---
 
-## 🏗️ Architecture
+## 📦 Using as a Library
 
-```mermaid
-graph LR
-    A[CloudFormation] --> B[Submit Lambda]
-    B --> C[(SQS Queue)]
-    C --> D[Generator Lambda]
-    C -.-> E[(DLQ)]
-    D --> F[(S3 Bucket)]
+You can import and use vmdatawheel in your own Python projects:
+
+```python
+from vmdatawheel.core.models import TaskMessage
+from vmdatawheel.sqs.submitter import TaskSubmitter
+from vmdatawheel.core.config import config
+
+# Method 1: Submit using the submitter class
+submitter = TaskSubmitter(queue_url="https://sqs.us-east-2.amazonaws.com/...")
+result = submitter.submit_tasks(
+    generators=["G-1_object_trajectory_data-generator"],
+    total_samples=1000,
+    batch_size=100,
+    seed=42,
+)
+print(f"Submitted {result['total_successful']} tasks")
+
+# Method 2: Create individual task messages
+task = TaskMessage(
+    type="G-1_object_trajectory_data-generator",
+    num_samples=100,
+    start_index=0,
+    seed=42,
+    output_format="files",
+)
+
+# Validate automatically with Pydantic
+validated_json = task.model_dump_json()
+# Use this JSON to send to SQS manually
 ```
-
-### Generator Types
-
-| Type | Description | Memory | Examples |
-|:----:|-------------|:------:|----------|
-| **O-** | Static/Logic tasks | 🟢 Low | Puzzles, counting, logic |
-| **G-** | Dynamic/Physics tasks | 🟡 High | Animation, simulation |
-
-<details>
-<summary><b>Memory characteristics</b></summary>
-
-**G- Generators** accumulate video frames in memory:
-```
-Frame 1 → Frame 2 → ... → Frame N  (all in memory before encoding)
-```
-
-**O- Generators** process and release immediately:
-```
-Input → Process → Output → Release ♻️
-```
-
-Configure batch sizes per generator in `scripts/generator_config.json`.
-
-</details>
-
-<br>
 
 ---
 
-## 📚 Documentation
+## 🏗️ Architecture Overview
 
-| Resource | Description |
-|----------|-------------|
-| [CLAUDE.md](./CLAUDE.md) | Development guidelines & code style |
-| [scripts/SQS_README.md](./scripts/SQS_README.md) | SQS operations & monitoring |
+### What Gets Created
 
-### Configuration
+When you run `cdk deploy`, it creates:
 
-<details>
-<summary><b>Environment Variables</b></summary>
+1. **S3 Bucket** - Stores generated data
+2. **SQS Queue** - Distributes tasks to workers
+3. **Lambda Function** - Runs generators (10GB memory, 15min timeout)
+4. **Dead Letter Queue** - Captures failed tasks for retry
+5. **IAM Roles** - Permissions for Lambda to access S3/SQS
 
-| Variable | Required | Default | Description |
-|----------|:--------:|---------|-------------|
-| `OUTPUT_BUCKET` | ✓ | — | S3 bucket for output data |
-| `SQS_QUEUE_URL` | ✓ | — | SQS queue URL |
-| `AWS_REGION` | | `us-east-2` | AWS region |
-| `AWS_PROFILE` | | — | AWS CLI profile name |
-| `GENERATORS_PATH` | | `/opt/generators` | Path to generators |
-| `SQS_DLQ_URL` | | — | Dead Letter Queue URL |
+### How It Works
 
-</details>
+```
+1. You run: python scripts/submit.py
+   ↓
+2. Creates task messages and sends to SQS Queue
+   ↓
+3. SQS automatically triggers Lambda (up to 990 concurrent)
+   ↓
+4. Lambda:
+   - Validates message with Pydantic
+   - Runs generator script
+   - Uploads results to S3
+   - Deletes message from queue
+   ↓
+5. If Lambda fails 3 times → message goes to DLQ
+```
 
-<details>
-<summary><b>Lambda Settings</b></summary>
-
-| Parameter | Value |
-|-----------|-------|
-| Memory | 3 GB |
-| Timeout | 15 min |
-| Runtime | Python 3.11 (Container) |
-
-</details>
-
-<details>
-<summary><b>SQS Settings</b></summary>
-
-| Parameter | Value |
-|-----------|-------|
-| Visibility Timeout | 16 min |
-| Max Retries | 3 |
-| DLQ | Enabled |
-
-</details>
-
-<details>
-<summary><b>Task Message Format</b></summary>
+### Task Message Format
 
 ```json
 {
-  "type": "chess-task-data-generator",
-  "start_index": 0,
+  "type": "G-1_object_trajectory_data-generator",
   "num_samples": 100,
+  "start_index": 0,
   "seed": 42,
-  "output_format": "files",
-  "output_bucket": "my-output-bucket"
+  "output_format": "files"
 }
 ```
 
-| Field | Required | Default | Description |
-|-------|:--------:|---------|-------------|
-| `type` | ✓ | — | Generator name |
-| `start_index` | | `0` | Starting index for sample IDs |
-| `num_samples` | ✓ | — | Samples to generate (≤100 recommended) |
-| `seed` | | random | Random seed for reproducibility |
-| `output_format` | | `files` | `files` or `tar` |
-| `output_bucket` | ✓ | — | S3 bucket for output data |
-
-</details>
-
-<br>
+All fields are validated by Pydantic. Invalid messages are rejected immediately.
 
 ---
 
-## 🛠️ Scripts Reference
+## ⚙️ Configuration
 
-| Script | Description | Example |
-|--------|-------------|---------|
-| `submit_tasks.py` | Submit tasks to SQS | `--generator all --samples 10000` |
-| `sqs_monitor.py` | Monitor queue status | `--watch` |
-| `sqs_utils.py` | Queue tools | `count`, `peek`, `purge` |
-| `test_server.py` | Local test Web UI | Opens at :8000 |
-| `local_test.py` | CLI testing | `--generator all --samples 3` |
-| `download_dlq_messages.py` | Download failed tasks | `--output DLQ` |
-| `push_dlq_to_sqs.py` | Retry failed tasks | `--dlq-dir DLQ` |
+### Required Environment Variables
 
-<br>
+```bash
+export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/.../vm-dataset-pipeline-queue"
+export OUTPUT_BUCKET="vm-dataset-123456789-us-east-2"
+```
+
+### Optional Environment Variables
+
+```bash
+export AWS_REGION="us-east-2"              # Default region
+export SQS_DLQ_URL="https://sqs..."        # For monitoring failed tasks
+export GENERATORS_PATH="./generators"       # Local path to generators
+```
+
+### Lambda Configuration
+
+Edit `deployment/cdk.json` to adjust:
+
+```json
+{
+  "context": {
+    "lambdaMemoryMB": 10240,           // 10 GB
+    "lambdaTimeoutMinutes": 15,        // 15 minutes
+    "sqsMaxConcurrency": 990           // Max parallel Lambdas
+  }
+}
+```
+
+---
+
+## 🛠️ Available Scripts
+
+### Submit Tasks
+
+```bash
+python scripts/submit.py --generator GENERATOR_NAME --samples NUM_SAMPLES
+
+# Options:
+#   --generator, -g    Generator name or "all" (required)
+#   --samples, -n      Total samples per generator (default: 10000)
+#   --batch-size, -b   Samples per Lambda task (default: 100)
+#   --seed, -s         Random seed (optional)
+#   --output-format    "files" or "tar" (default: files)
+#   --bucket           Override output bucket (optional)
+
+# Examples:
+python scripts/submit.py -g all -n 10000
+python scripts/submit.py -g G-1_object_trajectory_data-generator -n 1000 --seed 42
+```
+
+### Monitor Queue
+
+```bash
+python scripts/monitor.py
+
+# Options:
+#   --watch, -w        Continuous monitoring mode
+#   --interval, -i     Refresh interval in seconds (default: 10)
+
+# Example:
+python scripts/monitor.py --watch --interval 5
+```
+
+### Download Generators
+
+```bash
+cd scripts
+./download_all_repos.sh
+
+# This downloads all O- and G- generators from vm-dataset organization
+# To download specific types, edit line 20 of the script
+```
+
+### Update Generator Dependencies
+
+```bash
+cd scripts
+./collect_requirements.sh
+
+# This collects requirements.txt from all generators
+# and updates ../requirements-all.txt
+# Run this when generators are added or updated
+```
 
 ---
 
 ## 🐛 Troubleshooting
 
-<details>
-<summary><b>Docker not running</b></summary>
+### Docker Not Running
 
-Start Docker Desktop before running `cdk deploy`.
+**Error:** `Cannot connect to the Docker daemon`
 
-</details>
+**Solution:** Start Docker Desktop application
 
-<details>
-<summary><b>psutil missing after uv sync</b></summary>
+### Module Not Found
 
+**Error:** `ModuleNotFoundError: No module named 'pydantic'`
+
+**Solution:**
 ```bash
-uv add psutil
+pip install -e ".[dev,cdk]"
 ```
 
-</details>
+### AWS Credentials Not Configured
 
-<details>
-<summary><b>Node.js version outdated</b></summary>
+**Error:** `Unable to locate credentials`
 
-Node 19 is EOL. Upgrade to Node 20+:
+**Solution:**
+```bash
+aws configure
+# Enter your AWS Access Key ID and Secret Access Key
+```
 
+### Queue URL Not Set
+
+**Error:** `SQS_QUEUE_URL environment variable not set`
+
+**Solution:**
+```bash
+export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/.../vm-dataset-pipeline-queue"
+```
+
+Get this value from CDK outputs after deployment.
+
+### Generator Not Found
+
+**Error:** `Generator not found: ./generators/G-1_object_trajectory_data-generator`
+
+**Solution:**
+```bash
+cd scripts
+./download_all_repos.sh
+cd ..
+```
+
+### Node.js Version Too Old
+
+**Error:** `Node version 19 is end of life`
+
+**Solution:**
 ```bash
 brew install node@20
 ```
 
-</details>
-
-<details>
-<summary><b>Download specific generator types</b></summary>
-
-Edit `scripts/download_all_repos.sh` line 20:
-
-```bash
-# O- generators (puzzles, logic)
-grep -E '^O-([1-9]|[1-4][0-9]|50)_'
-
-# G- generators (physics, animation)
-grep -E '^G-([1-9]|[1-4][0-9]|50)_'
-```
-
-</details>
-
-<br>
-
 ---
 
-## 📂 Project Structure
+## 🔧 Advanced Usage
 
-```text
-vm-data-wheel/
-├── src/                          # Lambda source code
-│   ├── handler.py                # Lambda entry point
-│   ├── generator.py              # Generator execution
-│   ├── uploader.py               # S3 upload logic
-│   └── config.py                 # Configuration
-├── cdk/                          # CDK infrastructure
-│   └── stacks/pipeline_stack.py  # Lambda, SQS, S3 definitions
-├── cloudformation/               # One-click deploy template
-│   └── VmDatasetPipelineStack.template.json
-├── scripts/                      # CLI utilities
-│   ├── submit_tasks.py           # Task submission
-│   ├── sqs_monitor.py            # Queue monitoring
-│   ├── test_server.py            # Local test UI
-│   └── static/                   # Web UI assets
-├── tests/                        # Unit tests
-├── generators/                   # Generator repos (gitignored)
-├── Dockerfile                    # Lambda container
-└── pyproject.toml                # Dependencies
-```
-
-<br>
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please see [CLAUDE.md](./CLAUDE.md) for development guidelines.
+### Update Infrastructure
 
 ```bash
-# Setup
-uv sync --extra dev --extra cdk
-uv run pre-commit install
+# Make changes to deployment/cdk/stacks/pipeline_stack.py
 
-# Test
-uv run pytest
+# Preview changes
+cd deployment && uv run cdk diff
 
-# Lint
-uv run ruff check src/ scripts/
+# Apply changes
+uv run cdk deploy
 ```
 
-<br>
+### Clean Up AWS Resources
+
+```bash
+cd deployment
+uv run cdk destroy
+
+# This deletes:
+# - Lambda function
+# - SQS queues
+# - IAM roles
+# Note: S3 bucket is retained (with your data)
+```
+
+### List Available Generators
+
+```bash
+ls generators/
+# or
+python scripts/submit.py --generator all --samples 0  # Will list and exit
+```
 
 ---
 
 ## 📄 License
 
-Apache-2.0 — See [LICENSE](./LICENSE) for details.
-
-<br>
+Apache-2.0
 
 ---
 
 <p align="center">
-  <sub>Part of the <a href="https://github.com/vm-dataset">vm-dataset</a> project</sub>
+  Part of the <a href="https://github.com/vm-dataset">vm-dataset</a> project
 </p>
