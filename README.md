@@ -42,7 +42,7 @@
 
 ## What is VM Data Wheel?
 
-**VM Data Wheel** is a distributed data generation system built on AWS Lambda. It orchestrates 50+ generators from the [vm-dataset](https://github.com/vm-dataset) project to create high-quality training data for video reasoning models.
+**VM Data Wheel** is a distributed data generation system built on AWS Lambda. It orchestrates 100+ generators from the [vm-dataset](https://github.com/vm-dataset) project to create high-quality training data for video reasoning models.
 
 **Pip-installable package with Pydantic validation and modular architecture.**
 
