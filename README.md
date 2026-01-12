@@ -87,7 +87,7 @@ aws s3 sync s3://<YOUR_BUCKET_NAME> ./results
 
 ## 🎯 What is VM Data Wheel?
 
-VM Data Wheel is a **scalable data generation framework** that produces synthetic video-reasoning samples for training and evaluating vision-language models. Submit tasks to SQS, and Lambda workers generate samples in parallel — from 10K to millions of samples with zero infrastructure management.
+VM Data Wheel is a **scalable data generation framework** that produces synthetic video-reasoning samples for training and evaluating video generation models. Submit tasks to SQS, and Lambda workers generate samples in parallel — from 10K to millions of samples with zero infrastructure management.
 
 ```python
 # Generate 10K samples for all 50+ generators
@@ -144,6 +144,14 @@ Each generated sample includes:
 ## 🚀 Quick Start
 
 > **Note:** This section is for developers who want to modify the code. For simple deployment, use [One-Click Deploy](#-one-click-deploy) above.
+
+<br>
+
+<a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=vm-data-wheel&templateURL=https://raw.githubusercontent.com/Video-Reason/VMDataWheel/main/cloudformation/VmDatasetPipelineStack.template.json">
+  <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png" alt="Launch Stack" height="40" />
+</a>
+
+<br>
 
 ### Prerequisites
 
