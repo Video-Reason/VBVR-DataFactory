@@ -31,63 +31,50 @@
 
 ---
 
-<br>
+
+<div align="center">
 
 ## ☁️ One-Click Deploy
 
-<table>
-<tr>
-<td>
-
-### Deploy to your AWS account in minutes
-
-No installation required. Click the button below to launch the infrastructure:
+**Deploy to your AWS account in minutes — no installation required.**
 
 <br>
 
-<p align="center">
-  <a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=vm-data-wheel&templateURL=https://raw.githubusercontent.com/Video-Reason/VMDataWheel/main/cloudformation/VmDatasetPipelineStack.template.json">
-    <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png" alt="Launch Stack" />
-  </a>
-</p>
+<a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=vm-data-wheel&templateURL=https://raw.githubusercontent.com/Video-Reason/VMDataWheel/main/cloudformation/VmDatasetPipelineStack.template.json">
+  <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png" alt="Launch Stack" height="40" />
+</a>
 
 <br>
+<br>
 
-**What gets created:**
+| 🪣 S3 Bucket | 📬 SQS Queue | ⚡ Lambda (10GB) | 🔁 DLQ |
+|:------------:|:------------:|:----------------:|:------:|
+| Output storage | Task queue | 50+ generators | Auto-retry |
 
-| Resource | Description |
-|----------|-------------|
-| 🪣 **S3 Bucket** | Stores generated data |
-| 📬 **SQS Queue** | Task distribution |
-| ⚡ **Lambda Function** | Runs generators (10GB RAM) |
-| 🔁 **Dead Letter Queue** | Failed task retry |
-
-</td>
-</tr>
-</table>
+</div>
 
 <details>
-<summary><b>📋 After deployment</b></summary>
+<summary><b>📋 After deployment — How to use</b></summary>
 
 <br>
 
-1. **Get the outputs** from CloudFormation console:
-   - `QueueUrl` — SQS queue for submitting tasks
-   - `BucketName` — S3 bucket for output data
+**1. Get outputs** from CloudFormation console → Outputs tab:
+- `QueueUrl` — Your SQS queue URL
+- `BucketName` — Your S3 output bucket
 
-2. **Submit tasks:**
+**2. Submit tasks:**
 ```bash
-# Download the script
-curl -O https://raw.githubusercontent.com/Video-Reason/VMDataWheel/main/scripts/submit_tasks.py
+# Install boto3
+pip install boto3
 
-# Submit tasks
-python submit_tasks.py \
+# Submit 10K samples for all generators
+python scripts/submit_tasks.py \
   --queue-url <YOUR_QUEUE_URL> \
   --generator all \
   --samples 10000
 ```
 
-3. **Download results:**
+**3. Download results:**
 ```bash
 aws s3 sync s3://<YOUR_BUCKET_NAME> ./results
 ```
