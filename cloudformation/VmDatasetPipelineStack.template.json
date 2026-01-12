@@ -217,6 +217,82 @@
      "MaximumConcurrency": 990
     }
    }
+  },
+  "SubmitTasksRole": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       },
+       "Action": "sts:AssumeRole"
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+    ],
+    "Policies": [
+     {
+      "PolicyName": "SQSSendMessage",
+      "PolicyDocument": {
+       "Version": "2012-10-17",
+       "Statement": [
+        {
+         "Effect": "Allow",
+         "Action": [
+          "sqs:SendMessage"
+         ],
+         "Resource": {
+          "Fn::GetAtt": [
+           "TaskQueueF51BE51C",
+           "Arn"
+          ]
+         }
+        }
+       ]
+      }
+     }
+    ]
+   }
+  },
+  "SubmitTasksFunction": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "FunctionName": {
+     "Fn::Sub": "${AWS::StackName}-submit-tasks"
+    },
+    "Runtime": "python3.11",
+    "Handler": "index.handler",
+    "MemorySize": 256,
+    "Timeout": 900,
+    "Role": {
+     "Fn::GetAtt": [
+      "SubmitTasksRole",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "QUEUE_URL": {
+       "Ref": "TaskQueueF51BE51C"
+      },
+      "OUTPUT_BUCKET": {
+       "Ref": "OutputBucket7114EB27"
+      }
+     }
+    },
+    "Code": {
+     "ZipFile": "import boto3\nimport json\nimport os\n\nGENERATORS = [\n    'O-41_nonogram_data-generator',\n    'O-42_object_permanence_data-generator',\n    'O-43_object_subtraction_data-generator',\n    'O-55_rotation_data-generator'\n]\n\ndef handler(event, context):\n    sqs = boto3.client('sqs')\n    queue_url = os.environ['QUEUE_URL']\n    \n    generators = event.get('generators', GENERATORS)\n    samples = event.get('samples', 10000)\n    batch_size = event.get('batch_size', 25)\n    output_format = event.get('output_format', 'tar')\n    \n    count = 0\n    for gen in generators:\n        for start in range(0, samples, batch_size):\n            sqs.send_message(\n                QueueUrl=queue_url,\n                MessageBody=json.dumps({\n                    'type': gen,\n                    'start_index': start,\n                    'num_samples': min(batch_size, samples - start),\n                    'seed': start,\n                    'output_format': output_format\n                })\n            )\n            count += 1\n    \n    return {'messages_sent': count, 'generators': len(generators), 'samples_per_gen': samples}\n"
+    }
+   },
+   "DependsOn": [
+    "SubmitTasksRole"
+   ]
   }
  },
  "Outputs": {
@@ -238,10 +314,16 @@
     "Ref": "OutputBucket7114EB27"
    }
   },
-  "LambdaFunctionName": {
-   "Description": "Lambda function name",
+  "GeneratorFunctionName": {
+   "Description": "Generator Lambda function name",
    "Value": {
     "Ref": "GeneratorFunction36E4EF26"
+   }
+  },
+  "SubmitTasksFunctionName": {
+   "Description": "Submit Tasks Lambda function name - invoke this to submit batch tasks",
+   "Value": {
+    "Ref": "SubmitTasksFunction"
    }
   }
  }
