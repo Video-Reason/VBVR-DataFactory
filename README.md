@@ -1,6 +1,48 @@
-# VM Data Wheel
+<h1 align="center">VM Data Wheel</h1>
 
-Distributed data generation system for vm-dataset generators using AWS Lambda.
+<p align="center">
+  <b>Scalable data generation for video reasoning models using AWS Lambda.</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/vm-dataset">
+    <img alt="vm-dataset generators" src="https://img.shields.io/badge/generators-vm--dataset-181717?logo=github&logoColor=white" />
+  </a>
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11+-3776ab?logo=python&logoColor=white" />
+  <img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-green" />
+  <img alt="AWS Lambda" src="https://img.shields.io/badge/AWS-Lambda-FF9900?logo=awslambda&logoColor=white" />
+</p>
+
+<p align="center">
+  <a href="#one-click-deploy">Deploy</a> •
+  <a href="#what-is-vm-data-wheel">About</a> •
+  <a href="#-getting-started">Quick Start</a> •
+  <a href="#-architecture-overview">Docs</a>
+</p>
+
+---
+
+<div align="center">
+
+## One-Click Deploy
+
+**Deploy to your AWS account in minutes — no local setup required.**
+
+**🔜 Coming Soon**
+
+<!-- 
+<a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=vm-data-wheel&templateURL=https://raw.githubusercontent.com/Video-Reason/VMDataWheel/main/cloudformation/VmDatasetPipelineStack.template.json">
+  <img src="https://img.shields.io/badge/🚀_DEPLOY_NOW-00C853?style=for-the-badge" alt="Deploy Now" />
+</a>
+-->
+
+</div>
+
+---
+
+## What is VM Data Wheel?
+
+**VM Data Wheel** is a distributed data generation system built on AWS Lambda. It orchestrates 50+ generators from the [vm-dataset](https://github.com/vm-dataset) project to create high-quality training data for video reasoning models.
 
 **Pip-installable package with Pydantic validation and modular architecture.**
 
