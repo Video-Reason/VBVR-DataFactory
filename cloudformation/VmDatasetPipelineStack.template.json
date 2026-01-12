@@ -13,41 +13,30 @@
      ]
     },
     "BucketName": {
-     "Fn::Join": [
-      "",
-      [
-       "vm-dataset-",
-       {
-        "Ref": "AWS::AccountId"
-       },
-       "-us-east-2"
-      ]
-     ]
+     "Fn::Sub": "${AWS::StackName}-output-${AWS::AccountId}"
     }
    },
    "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
-   "Metadata": {
-    "aws:cdk:path": "VmDatasetPipelineStack/OutputBucket/Resource"
-   }
+   "DeletionPolicy": "Retain"
   },
   "DeadLetterQueue9F481546": {
    "Type": "AWS::SQS::Queue",
    "Properties": {
     "MessageRetentionPeriod": 1209600,
-    "QueueName": "vm-dataset-pipeline-dlq"
+    "QueueName": {
+     "Fn::Sub": "${AWS::StackName}-dlq"
+    }
    },
    "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete",
-   "Metadata": {
-    "aws:cdk:path": "VmDatasetPipelineStack/DeadLetterQueue/Resource"
-   }
+   "DeletionPolicy": "Delete"
   },
   "TaskQueueF51BE51C": {
    "Type": "AWS::SQS::Queue",
    "Properties": {
     "MessageRetentionPeriod": 345600,
-    "QueueName": "vm-dataset-pipeline-queue",
+    "QueueName": {
+     "Fn::Sub": "${AWS::StackName}-queue"
+    },
     "RedrivePolicy": {
      "deadLetterTargetArn": {
       "Fn::GetAtt": [
@@ -60,10 +49,7 @@
     "VisibilityTimeout": 960
    },
    "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete",
-   "Metadata": {
-    "aws:cdk:path": "VmDatasetPipelineStack/TaskQueue/Resource"
-   }
+   "DeletionPolicy": "Delete"
   },
   "GeneratorFunctionServiceRole0D2E0546": {
    "Type": "AWS::IAM::Role",
@@ -94,9 +80,6 @@
       ]
      }
     ]
-   },
-   "Metadata": {
-    "aws:cdk:path": "VmDatasetPipelineStack/GeneratorFunction/ServiceRole/Resource"
    }
   },
   "GeneratorFunctionServiceRoleDefaultPolicyED608EC2": {
@@ -175,22 +158,21 @@
      ],
      "Version": "2012-10-17"
     },
-    "PolicyName": "GeneratorFunctionServiceRoleDefaultPolicyED608EC2",
+    "PolicyName": {
+     "Fn::Sub": "${AWS::StackName}-lambda-policy"
+    },
     "Roles": [
      {
       "Ref": "GeneratorFunctionServiceRole0D2E0546"
      }
     ]
-   },
-   "Metadata": {
-    "aws:cdk:path": "VmDatasetPipelineStack/GeneratorFunction/ServiceRole/DefaultPolicy/Resource"
    }
   },
   "GeneratorFunction36E4EF26": {
    "Type": "AWS::Lambda::Function",
    "Properties": {
     "Code": {
-     "ImageUri": "public.ecr.aws/o2x2w4b2/vm-data-wheel:latest"
+     "ImageUri": "956728988776.dkr.ecr.us-east-2.amazonaws.com/cdk-hnb659fds-container-assets-956728988776-us-east-2:fe25c62ce650fbd423b2d7c617d6a1a314dbac1fa1ba249b36ff819fd1e38b4d"
     },
     "Environment": {
      "Variables": {
@@ -200,7 +182,9 @@
       "GENERATORS_PATH": "/opt/generators"
      }
     },
-    "FunctionName": "vm-dataset-pipeline-generator",
+    "FunctionName": {
+     "Fn::Sub": "${AWS::StackName}-generator"
+    },
     "MemorySize": 3008,
     "PackageType": "Image",
     "Role": {
@@ -214,13 +198,7 @@
    "DependsOn": [
     "GeneratorFunctionServiceRoleDefaultPolicyED608EC2",
     "GeneratorFunctionServiceRole0D2E0546"
-   ],
-   "Metadata": {
-    "aws:cdk:path": "VmDatasetPipelineStack/GeneratorFunction/Resource",
-    "aws:asset:path": "asset.a6536d60d21fa9a3d53b0917648853508f1c7b0aa0829d6df1ac8bed0a10d58d",
-    "aws:asset:dockerfile-path": "Dockerfile",
-    "aws:asset:property": "Code.ImageUri"
-   }
+   ]
   },
   "GeneratorFunctionSqsEventSourceVmDatasetPipelineStackTaskQueueDD6CE71F6CB5E867": {
    "Type": "AWS::Lambda::EventSourceMapping",
@@ -238,9 +216,6 @@
     "ScalingConfig": {
      "MaximumConcurrency": 990
     }
-   },
-   "Metadata": {
-    "aws:cdk:path": "VmDatasetPipelineStack/GeneratorFunction/SqsEventSource:VmDatasetPipelineStackTaskQueueDD6CE71F/Resource"
    }
   }
  },
