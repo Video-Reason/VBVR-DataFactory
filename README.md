@@ -1,420 +1,174 @@
-# vm-dataset-pipeline
+# 🎬 VM Dataset Pipeline
 
-Distributed data generation system for vm-dataset generators using AWS Lambda.
+**Scalable data generation for video reasoning models.**
 
-## Overview
+Generate unlimited synthetic video-reasoning samples using AWS Lambda. Built for researchers who need reproducible, high-quality training data at scale.
 
-- **50 generators** from vm-dataset organization
-- **10K samples** per generator
-- **500K total samples**
+---
 
-## Architecture
+## ✨ Highlights
 
-```
-Docker Image (all code + dependencies)
-        │
-        ▼
-ECR ──▶ Lambda (15min timeout) ◀── SQS
-                      │
-                      ▼
-                   S3 Output
-```
+- 🚀 **Infinite Scale** — Generate 10K to 1M+ samples using serverless Lambda
+- 🎯 **50+ Task Types** — Puzzles, physics, object permanence, spatial reasoning
+- 🔄 **Reproducible** — Deterministic generation with seed control
+- 📦 **Modular** — Add new generators without changing infrastructure
 
-## Project Structure
+## 🏗️ Architecture
 
 ```
-vm-dataset-pipeline/
-├── src/                          # Lambda code
-│   ├── __init__.py
-│   ├── config.py                 # Configuration (.env support)
-│   ├── handler.py                # Lambda entry point
-│   ├── generator.py              # Generator execution + retry logic
-│   ├── uploader.py               # S3 upload (tar / direct)
-│   └── utils.py                  # Utility functions
-│
-├── cdk/                          # CDK infrastructure
-│   ├── app.py                    # CDK entry point
-│   └── stacks/
-│       └── pipeline_stack.py     # Lambda, SQS, S3 resource definitions
-│
-├── tests/                        # Tests
-│   ├── conftest.py
-│   ├── unit/
-│   │   ├── test_generator.py
-│   │   ├── test_uploader.py
-│   │   └── test_utils.py
-│   └── cdk/
-│       └── test_stack.py
-│
-├── generators/                   # Generator code (gitignored)
-├── scripts/                      # Utility scripts
-│   ├── common.py                 # Shared config (.env support)
-│   ├── submit_tasks.py           # Submit tasks to SQS
-│   ├── sqs_monitor.py            # Monitor queue status
-│   ├── sqs_utils.py              # SQS tools (purge/count/peek)
-│   ├── download_dlq_messages.py  # Download DLQ messages
-│   ├── push_dlq_to_sqs.py        # Resend DLQ messages
-│   ├── test_server.py            # Local test Web UI server
-│   ├── local_test.py             # CLI for local testing
-│   └── static/                   # Web UI static files
-│       ├── index.html
-│       └── app.js
-├── Dockerfile                    # Lambda container image
-├── pyproject.toml                # UV + Python project config
-├── cdk.json                      # CDK config
-└── README.md
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Submit    │ ───▶ │     SQS     │ ───▶ │   Lambda    │ ───▶ │     S3      │
+│   Tasks     │      │    Queue    │      │  Container  │      │   Output    │
+└─────────────┘      └─────────────┘      └─────────────┘      └─────────────┘
+                                                │
+                                    ┌───────────┴───────────┐
+                                    │   50+ Generators      │
+                                    │   (Physics, Puzzles,  │
+                                    │    Logic, Spatial)    │
+                                    └───────────────────────┘
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
-### Prerequisites
-
-- Python 3.11+
-- [UV](https://github.com/astral-sh/uv) package manager
-- [AWS CLI](https://aws.amazon.com/cli/) configured
-- [GitHub CLI](https://cli.github.com/) (for downloading generator repos)
-- Docker
+### Installation
 
 ```bash
-# Install UV
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install AWS CLI (macOS)
-brew install awscli
-# For other platforms, see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-
-# Configure AWS credentials
-aws configure
-# Or use named profile:
-aws configure --profile your-profile-name
-
-# Install GitHub CLI (macOS)
-brew install gh
-# For other platforms, see: https://cli.github.com/
-
-# Authenticate GitHub CLI
-gh auth login
-```
-
-> **Note**: CDK is installed automatically via `uv sync --extra cdk`, no separate installation needed.
-
-### 1. Setup Development Environment
-
-```bash
-# Clone this repo
-git clone https://github.com/your-org/vm-dataset-pipeline
+# Clone repository
+git clone https://github.com/LianyuHuang/vm-dataset-pipeline
 cd vm-dataset-pipeline
 
-# Install dependencies with UV
+# Install dependencies
+curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync --extra dev --extra cdk
 
-# Install pre-commit hooks
-uv run pre-commit install
-
-# Setup environment variables
-cp .env.example .env
-# Edit .env with your settings:
-#   AWS_PROFILE=your-profile-name  (if using named profile)
-#   SQS_QUEUE_URL=...              (after CDK deploy)
-
-# Download all generator repos
-cd scripts
-./download_all_repos.sh
-```
-
-### Environment Variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `OUTPUT_BUCKET` | Yes | - | S3 bucket for output data |
-| `AWS_REGION` | No | `us-east-2` | AWS region |
-| `AWS_PROFILE` | No | - | AWS CLI profile name |
-| `GENERATORS_PATH` | No | `/opt/generators` | Path to generators |
-| `SQS_QUEUE_URL` | No | - | SQS queue URL (for scripts) |
-| `SQS_DLQ_URL` | No | - | SQS Dead Letter Queue URL (for monitoring) |
-
-### 2. Run Tests
-
-```bash
-# Run all tests
-uv run pytest
-
-# Run with coverage
-uv run pytest --cov=src
-
-# Run specific test file
-uv run pytest tests/unit/test_utils.py -v
-```
-
-### 3. Deploy with CDK
-
-> **Note**: CDK doesn't read `.env` file. Use `--profile` flag or set `AWS_PROFILE` environment variable.
-
-```bash
-# Set AWS profile (or use --profile flag for each command)
-export AWS_PROFILE=your-profile-name
-
-# Bootstrap CDK (first time only)
-uv run cdk bootstrap
-
-# Deploy stack (builds Docker image automatically)
-uv run cdk deploy
-
-# Destroy stack
-uv run cdk destroy
-```
-
-After deploy, update `.env` with the output values:
-```bash
-SQS_QUEUE_URL=https://sqs.us-east-2.amazonaws.com/xxx/vm-dataset-pipeline-queue
-SQS_DLQ_URL=https://sqs.us-east-2.amazonaws.com/xxx/vm-dataset-pipeline-dlq
-```
-
-### 4. Update Lambda (After Code Changes)
-
-After modifying code in `src/`, redeploy to update Lambda:
-
-```bash
-uv run cdk deploy
-```
-
-This rebuilds the Docker image and updates the Lambda function automatically.
-
-### 5. Submit Tasks
-
-```bash
-export SQS_QUEUE_URL=https://sqs.xxx.amazonaws.com/xxx/vm-dataset-pipeline-queue
-
-# Submit tasks for all generators
-python scripts/submit_tasks.py --generator all --samples 10000
-
-# Or submit for a specific generator
-python scripts/submit_tasks.py --generator chess-task-data-generator --samples 10000
-```
-
-### 6. Download Results
-
-```bash
-aws s3 sync s3://vm-dataset-xxx ./results
-```
-
-## UV Commands
-
-```bash
-uv sync                    # Install dependencies
-uv sync --extra dev        # Install dev dependencies
-uv sync --extra cdk        # Install CDK dependencies
-uv run pytest              # Run tests
-uv run cdk synth           # Generate CloudFormation template
-uv run cdk deploy          # Deploy CDK
-```
-
-## Scripts
-
-All scripts support `.env` file configuration.
-
-### submit_tasks.py - Submit Tasks
-
-```bash
-# Submit all generators
-python scripts/submit_tasks.py --generator all --samples 10000
-
-# Submit single generator
-python scripts/submit_tasks.py --generator chess-task-data-generator --samples 10000
-
-# Dry run (no actual send)
-python scripts/submit_tasks.py --generator all --samples 1000 --dry-run
-```
-
-### sqs_monitor.py - Monitor Queue
-
-```bash
-# View queue status
-python scripts/sqs_monitor.py
-
-# Continuous monitoring
-python scripts/sqs_monitor.py --watch
-```
-
-### sqs_utils.py - SQS Tools
-
-```bash
-# Count messages
-python scripts/sqs_utils.py count
-
-# Peek at a message
-python scripts/sqs_utils.py peek
-
-# Purge queue
-python scripts/sqs_utils.py purge
-```
-
-### DLQ Handling
-
-```bash
-# Download DLQ messages to local directory
-python scripts/download_dlq_messages.py --output DLQ
-
-# Resend DLQ messages (seed will be randomly generated)
-python scripts/push_dlq_to_sqs.py --dlq-dir DLQ
-
-# Dry run
-python scripts/push_dlq_to_sqs.py --dlq-dir DLQ --dry-run
+# Download generators
+cd scripts && ./download_all_repos.sh && cd ..
 ```
 
 ### Local Testing
 
-#### Web UI (Recommended)
-
 ```bash
-# Start test server
+# Start Web UI
 uv run python scripts/test_server.py
-
-# Open http://localhost:8000 in browser
+# Open http://localhost:8000
 ```
 
-Features:
-- Download generator repos from GitHub (with status: Up-to-date/Outdated/Not downloaded)
-- Select and test multiple generators
-- Real-time progress tracking
-- Expandable error details for failed tests
-- Export results to JSON/CSV
-- Sortable results table
-
-#### Command Line
+### Deploy & Generate
 
 ```bash
-# Test a single generator
-uv run python scripts/local_test.py --generator G-1_object_trajectory_data-generator --samples 5
+# Deploy infrastructure
+uv run cdk deploy
 
-# Test all generators
-uv run python scripts/local_test.py --generator all --samples 3
-
-# With specific seed
-uv run python scripts/local_test.py --generator G-1_object_trajectory_data-generator --samples 5 --seed 42
+# Submit 10K samples per generator
+python scripts/submit_tasks.py --generator all --samples 10000
 ```
 
-## Configuration
+## 📦 Output Format
 
-### Lambda
+Each sample contains:
+
+```
+{task_id}/
+├── first_frame.png      # Initial state
+├── final_frame.png      # Target state
+├── prompt.txt           # Task description
+├── rubric.txt           # Evaluation criteria
+└── ground_truth.mp4     # Solution video (optional)
+```
+
+## 🧩 Generator Types
+
+| Type | Examples | Memory | Use Case |
+|------|----------|--------|----------|
+| **O-** (Static) | Nonogram, Sudoku, Mazes | Low | Puzzles, logic tasks |
+| **G-** (Dynamic) | Physics, Animation, Path planning | High | Video generation, simulation |
+
+<details>
+<summary><b>Memory Characteristics</b></summary>
+
+**G- Generators** accumulate frames in memory for video generation:
+```
+Frame 1 → Frame 2 → ... → Frame N  (all in memory)
+```
+
+**O- Generators** process single images with immediate memory release:
+```
+Input → Process → Output → Release
+```
+
+Configure batch sizes in `scripts/generator_config.json`.
+
+</details>
+
+## 📚 Documentation
+
+| Topic | Description |
+|-------|-------------|
+| [CLAUDE.md](./CLAUDE.md) | Development guidelines |
+| [scripts/SQS_README.md](./scripts/SQS_README.md) | SQS operations guide |
+
+## 🛠️ Development
+
+```bash
+uv run pytest                           # Run tests
+uv run ruff check src/ scripts/         # Lint
+uv run cdk deploy                       # Deploy changes
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OUTPUT_BUCKET` | Yes | S3 bucket for output |
+| `SQS_QUEUE_URL` | Yes | SQS queue URL |
+| `AWS_REGION` | No | Default: `us-east-2` |
+
+### Lambda Settings
 
 | Parameter | Value |
 |-----------|-------|
 | Memory | 10 GB |
-| Timeout | 15 minutes (900s) |
+| Timeout | 15 min |
 
-### SQS
+## 🐛 Troubleshooting
 
-| Parameter | Value |
-|-----------|-------|
-| Visibility Timeout | 960 seconds (16 min) |
-| Max Retries | 3 |
+<details>
+<summary><b>Common Issues</b></summary>
 
-### Task Format
-
-```json
-{
-  "type": "chess-task-data-generator",
-  "start_index": 0,
-  "num_samples": 100,
-  "seed": 42,
-  "output_format": "files"
-}
-```
-
-| Field | Required | Default | Description |
-|-------|----------|---------|-------------|
-| `type` | Yes | - | Generator name |
-| `start_index` | No | `0` | Starting index for global sample IDs |
-| `num_samples` | Yes | - | Number of samples to generate (recommended <= 100) |
-| `seed` | No | random | Random seed (Lambda generates if not provided) |
-| `output_format` | No | `"files"` | `"files"` for individual files, `"tar"` for tar.gz archive |
-
-## Output Structure
-
-Each generator produces samples in the following structure:
-
-```
-data/questions/{domain}_task/{task_id}/
-├── first_frame.png      # Initial state image (REQUIRED)
-├── final_frame.png      # Target state image (OPTIONAL but recommended)
-├── prompt.txt           # Task prompt (REQUIRED)
-├── rubric.txt           # Scoring rubric (REQUIRED)
-└── ground_truth.mp4     # Solution video (OPTIONAL)
-```
-
-Lambda renames `task_id` with global index based on `start_index`, so S3 output will be:
-
-```
-s3://vm-dataset-xxx/data/v1/{generator}/{global_task_id}/...
-```
-
-Or when using tar mode:
-
-```
-s3://vm-dataset-xxx/data/v1/{generator}/{generator}_{start}_{end}.tar.gz
-```
-
-## Troubleshooting
-
-### Download script filter
-
-`download_all_repos.sh` filters repos by prefix. Edit line 20 to change:
-
+**Docker not running**
 ```bash
-# O- generators (default)
-grep -E '^O-([1-9]|[1-4][0-9]|50)_'
-
-# G- generators
-grep -E '^G-([1-9]|[1-4][0-9]|50)_'
+# Start Docker Desktop before `cdk deploy`
 ```
 
-### psutil missing after uv sync
-
+**psutil missing**
 ```bash
-uv add psutil
+uv sync --extra dev
 ```
 
-### Docker not running
-
-Start Docker Desktop before running `cdk deploy`.
-
-### Node.js version outdated
-
-Node 19 is EOL. Upgrade to Node 20+:
-
+**Node.js outdated**
 ```bash
 brew install node@20
 ```
 
-## Generator Memory Comparison
-
-G- and O- generators have different memory characteristics:
-
-### G- Generator (Memory Intensive)
-
-```
-┌─────────────────────────────────────┐
-│  Frame 1 → Frame 2 → ... → Frame N  │  ← Video requires all frames in memory
-│  + Physics state + Object history   │  ← Cumulative memory
-└─────────────────────────────────────┘
+**Download specific generators**
+```bash
+# Edit scripts/download_all_repos.sh line 20:
+grep -E '^O-([1-9]|[1-4][0-9]|50)_'  # O- generators
+grep -E '^G-([1-9]|[1-4][0-9]|50)_'  # G- generators
 ```
 
-- **Video/Animation**: spinning objects, combined movements
-- **Physics simulation**: jenga, bounces
-- **Path planning**: grid search, shortest path
-- **Batch size**: 100-500 (configured in `generator_config.json`)
+</details>
 
-### O- Generator (Memory Friendly)
+## 📄 License
 
-```
-┌─────────────────────────────────────┐
-│  Input → Process → Output           │  ← Single-pass processing
-│  (No state accumulation)            │  ← Stable memory
-└─────────────────────────────────────┘
-```
+Apache-2.0
 
-- **Static images**: puzzles (nonogram, sudoku, maze)
-- **Simple transforms**: color change, rotation, scaling
-- **Logic tasks**: logic gates, sequences
-- **Batch size**: 1000 (default)
+## 🔗 Related Projects
+
+Part of the Video Reasoning research stack:
+- **Data Engine** — This repository
+- **Inference Engine** — Model inference pipeline
+- **Evaluation Engine** — Benchmark evaluation
+- **Training Kit** — Model training utilities
