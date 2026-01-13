@@ -8,6 +8,11 @@ __pycache__/
 .venv/
 venv/
 
+# Environment files (NEVER commit these!)
+.env
+*.env
+!.env.example
+
 # OS
 .DS_Store
 
@@ -17,6 +22,7 @@ venv/
 
 # Temp
 *.raw
+dlq_messages/
 
 # CDK
 cdk.out/

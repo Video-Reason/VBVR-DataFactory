@@ -5,6 +5,7 @@ import os
 from aws_cdk import (
     CfnOutput,
     Duration,
+    IgnoreMode,
     RemovalPolicy,
     Stack,
 )
@@ -81,6 +82,17 @@ class PipelineStack(Stack):
             code=lambda_.DockerImageCode.from_image_asset(
                 PROJECT_ROOT,
                 platform=ecr_assets.Platform.LINUX_AMD64,
+                ignore_mode=IgnoreMode.GLOB,
+                exclude=[
+                    "**/cdk.out/**",
+                    "deployment/cdk.out/**",
+                    "**/.venv/**",
+                    "**/venv/**",
+                    "**/__pycache__/**",
+                    "**/*.pyc",
+                    "**/.pytest_cache/**",
+                    "**/.git/**",
+                ],
             ),
             memory_size=lambda_memory,
             timeout=Duration.minutes(lambda_timeout),
