@@ -20,8 +20,6 @@
   <a href="#-architecture-overview">Docs</a>
 </p>
 
----
-
 **VM Data Wheel** is a distributed data generation system built on AWS Lambda. It orchestrates 300+ generators from the [vm-dataset](https://github.com/vm-dataset) project to create high-quality training data for video reasoning models.
 
 ---
