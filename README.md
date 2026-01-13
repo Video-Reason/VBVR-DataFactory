@@ -34,7 +34,7 @@
   <img src="https://img.shields.io/badge/🚀_DEPLOY_NOW-00C853?style=for-the-badge" alt="Deploy Now" />
 </a>
 
-> **Stack name must be lowercase** (e.g., `vm-data-wheel`)
+**Stack name must be lowercase** (e.g., `vm-data-wheel`)
 
 | S3 Bucket | SQS Queue | Lambda (3GB) | DLQ |
 |:---------:|:---------:|:------------:|:---:|
@@ -90,11 +90,7 @@ aws s3 sync s3://{stack-name}-output-{account-id} ./results
 
 ---
 
-## What is VM Data Wheel?
-
 **VM Data Wheel** is a distributed data generation system built on AWS Lambda. It orchestrates 300+ generators from the [vm-dataset](https://github.com/vm-dataset) project to create high-quality training data for video reasoning models.
-
-**Pip-installable package with Pydantic validation and modular architecture.**
 
 ---
 
