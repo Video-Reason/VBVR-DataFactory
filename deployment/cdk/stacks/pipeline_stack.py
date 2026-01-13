@@ -1,6 +1,7 @@
 """CDK Stack for VM Dataset Pipeline infrastructure."""
 
 import os
+from datetime import datetime
 
 from aws_cdk import (
     CfnOutput,
@@ -38,11 +39,12 @@ class PipelineStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # S3 Bucket for output data
+        # S3 Bucket for output data with timestamp
+        timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
         self.output_bucket = s3.Bucket(
             self,
             "OutputBucket",
-            bucket_name=f"vm-dataset-{self.account}-{self.region}",
+            bucket_name=f"vm-dataset-{self.account}-{self.region}-{timestamp}",
             removal_policy=RemovalPolicy.RETAIN,
             versioned=False,
             encryption=s3.BucketEncryption.S3_MANAGED,
@@ -65,7 +67,7 @@ class PipelineStack(Stack):
             visibility_timeout=Duration.minutes(16),
             retention_period=Duration.days(4),
             dead_letter_queue=sqs.DeadLetterQueue(
-                max_receive_count=3,
+                max_receive_count=1,
                 queue=self.dlq,
             ),
         )
