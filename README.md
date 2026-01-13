@@ -1,4 +1,4 @@
-<h1 align="center">VM Data Wheel</h1>
+<h1 align="center" style="font-size: 3.5em; font-weight: bold;">VM Data Wheel</h1>
 
 <p align="center">
   <b>Scalable data generation for video reasoning models using AWS Lambda.</b>
@@ -28,13 +28,13 @@
 
 ## One-Click Deploy
 
-**🔜 Coming Soon**
-
 **Deploy to your AWS account in minutes — no local setup required.**
 
 <a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=vm-data-wheel&templateURL=https://raw.githubusercontent.com/Video-Reason/VMDataWheel/main/cloudformation/VmDatasetPipelineStack.template.json">
   <img src="https://img.shields.io/badge/🚀_DEPLOY_NOW-00C853?style=for-the-badge" alt="Deploy Now" />
 </a>
+
+**🔜 Coming Soon**
 
 | S3 Bucket | SQS Queue | Lambda | DLQ |
 |:---------:|:---------:|:------:|:---:|
