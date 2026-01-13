@@ -112,10 +112,24 @@ python3 --version  # Should be 3.11 or higher
 python3 -m venv venv
 source venv/bin/activate
 
-# Install UV (Python package manager)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# If `uv` is not found after install:
-source "$HOME/.local/bin/env"
+# Install Node.js (required for AWS CDK CLI)
+# Ubuntu/Debian:
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# macOS:
+# brew install node
+
+# Verify Node.js installation:
+node --version  # Should be v20.x or higher
+npm --version
+
+# Install AWS CDK CLI globally (required for deployment)
+# Note: CLI version doesn't need to match aws-cdk-lib Python package version
+sudo npm install -g aws-cdk@2.1100.3
+
+# Verify CDK installation:
+cdk --version  # Should be 2.1100.3
 
 # --- macOS (Homebrew) ---
 # brew install awscli
@@ -126,14 +140,13 @@ source "$HOME/.local/bin/env"
 # sudo apt update
 # sudo apt install -y curl unzip git python3-venv
 #
-# AWS CLI (install after activating venv):
-# Option A (pip, easiest): pip install awscli==1.36.21
-# Option B (v2, standalone):
+# AWS CLI:
+# Option A (pip, compatible with boto3/botocore): pip install awscli==1.44.16
+# Option B (v2, standalone - no Python dependencies):
 #   curl -L "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
 #   unzip -q awscliv2.zip
 #   sudo ./aws/install
 #   rm -rf awscliv2.zip aws
-# Note: apt install awscli may not be available on newer Ubuntu versions (24.04+)
 #
 # GitHub CLI:
 # sudo apt install -y gh
@@ -196,14 +209,19 @@ cd ..
 # - macOS/Windows: Docker Desktop
 # - Linux: Docker Engine (dockerd)
 
-# Navigate to deployment directory
-cd deployment
+# Ensure you're in the project root directory (VMDataWheel/)
+# If you're in the deployment subdirectory, go back:
+# cd ..
 
 # Bootstrap CDK (first time only)
-uv run cdk bootstrap
+cd deployment
+cdk bootstrap
+cd ..
 
 # Deploy the infrastructure
-uv run cdk deploy
+cd deployment
+cdk deploy
+cd ..
 
 # Wait for deployment to complete (~5-10 minutes)
 # Save the outputs that appear at the end:
@@ -579,17 +597,19 @@ cd ..
 # Make changes to deployment/cdk/stacks/pipeline_stack.py
 
 # Preview changes
-cd deployment && uv run cdk diff
+cd deployment
+cdk diff
 
 # Apply changes
-uv run cdk deploy
+cdk deploy
+cd ..
 ```
 
 ### Clean Up AWS Resources
 
 ```bash
 cd deployment
-uv run cdk destroy
+cdk destroy
 
 # This deletes:
 # - Lambda function
