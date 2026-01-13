@@ -5,6 +5,7 @@ NO try-catch blocks - let boto3 exceptions bubble up for Lambda/SQS to handle re
 
 import logging
 import tarfile
+from datetime import datetime
 from pathlib import Path
 
 import boto3
@@ -26,7 +27,7 @@ class S3Uploader:
 
         Args:
             local_dir: Path to local directory
-            s3_prefix: S3 key prefix (e.g., "data/v1/generator_name/sample_id/")
+            s3_prefix: S3 key prefix (e.g., "20260113-091545/data/generator_name/sample_id/")
 
         Returns:
             Number of files uploaded
@@ -121,29 +122,32 @@ class S3Uploader:
         """
         uploaded_samples = []
         tar_file = None
+        
+        # Generate timestamp for this upload batch
+        timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
 
         if output_format == "tar":
             end_index = start_index + len(renamed_samples) - 1
             tar_filename = f"{task_type}_{start_index}_{end_index}.tar.gz"
-            s3_key = f"data/v1/{task_type}/{tar_filename}"
+            s3_key = f"{timestamp}/data/{task_type}/{tar_filename}"
 
             self.create_and_upload_tar(domain_task_dir, tar_filename, s3_key)
 
             for sample_id in renamed_samples:
                 uploaded_samples.append({"sample_id": sample_id, "files_uploaded": 0})
 
-            logger.info(f"Created and uploaded tar with {len(renamed_samples)} samples")
+            logger.info(f"Created and uploaded tar with {len(renamed_samples)} samples to {timestamp}/")
             tar_file = tar_filename
         else:
             for sample_id in renamed_samples:
                 sample_dir = domain_task_dir / sample_id
                 if sample_dir.exists():
-                    s3_prefix = f"data/v1/{task_type}/{sample_id}/"
+                    s3_prefix = f"{timestamp}/data/{task_type}/{sample_id}/"
                     files_uploaded = self.upload_directory(sample_dir, s3_prefix)
                     uploaded_samples.append({"sample_id": sample_id, "files_uploaded": files_uploaded})
                     logger.info(f"Uploaded sample {sample_id}: {files_uploaded} files")
 
-            logger.info(f"Uploaded {len(renamed_samples)} samples directly")
+            logger.info(f"Uploaded {len(renamed_samples)} samples directly to {timestamp}/")
 
         return uploaded_samples, tar_file
 
