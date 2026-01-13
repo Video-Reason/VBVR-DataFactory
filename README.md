@@ -139,9 +139,16 @@ source "$HOME/.local/bin/env"
 # sudo apt install -y gh
 # (If `gh` isn't available in your distro repos, install from https://cli.github.com/)
 #
-# Docker:
-# Install Docker Engine (Linux) or Docker Desktop (macOS/Windows).
-# See: https://docs.docker.com/engine/install/
+# Docker (No Docker Hub account needed - this project uses AWS ECR):
+# sudo apt install -y ca-certificates curl
+# sudo install -m 0755 -d /etc/apt/keyrings
+# sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+# sudo chmod a+r /etc/apt/keyrings/docker.asc
+# echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+# sudo apt update  # Required after adding Docker repository
+# sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+# sudo usermod -aG docker $USER  # Add your Linux user to docker group (avoid needing sudo)
+# newgrp docker  # Or log out and back in to apply group changes
 ```
 
 ### Step 2: Configure AWS
