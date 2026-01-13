@@ -8,6 +8,7 @@ COPY requirements-all.txt .
 RUN pip install --upgrade pip && \
     pip install "numpy>=1.26.0,<2.0.0" && \
     pip install "pyarrow<17.0.0" && \
+    pip install awscli==1.36.21 && \
     pip install -r requirements-all.txt
 
 # All generator code

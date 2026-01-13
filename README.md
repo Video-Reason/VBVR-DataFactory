@@ -108,6 +108,10 @@ aws s3 sync s3://{stack-name}-output-{account-id} ./results
 # Verify Python 3.11+ (required)
 python3 --version  # Should be 3.11 or higher
 
+# Create and activate virtual environment (recommended)
+python3 -m venv venv
+source venv/bin/activate
+
 # Install UV (Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 # If `uv` is not found after install:
@@ -120,14 +124,16 @@ source "$HOME/.local/bin/env"
 
 # --- Ubuntu/Debian (apt) ---
 # sudo apt update
-# sudo apt install -y curl unzip git
+# sudo apt install -y curl unzip git python3-venv
 #
-# AWS CLI:
-# Option A (usually v1): sudo apt install -y awscli
-# Option B (v2, recommended):
+# AWS CLI (install after activating venv):
+# Option A (pip, easiest): pip install awscli==1.36.21
+# Option B (v2, standalone):
 #   curl -L "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
 #   unzip -q awscliv2.zip
 #   sudo ./aws/install
+#   rm -rf awscliv2.zip aws
+# Note: apt install awscli may not be available on newer Ubuntu versions (24.04+)
 #
 # GitHub CLI:
 # sudo apt install -y gh
