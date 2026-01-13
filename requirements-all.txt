@@ -6,6 +6,7 @@
 numpy>=1.26.0,<2.0.0
 Pillow>=11.0.0
 pydantic>=2.0.0
+pydantic-settings>=2.0.0
 
 # Video generation
 opencv-python-headless>=4.10.0
@@ -19,7 +20,7 @@ python-chess==1.999
 
 # Graph/Path
 networkx==3.2.1
-scipy>=1.11.0
+scipy>=1.11.0,<1.13.0
 shapely==2.0.4
 
 # AWS

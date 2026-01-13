@@ -1,5 +1,5 @@
 {
-  "app": "uv run python deployment/cdk/app.py",
+  "app": "python3 cdk/app.py",
   "watch": {
     "include": ["**"],
     "exclude": [

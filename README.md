@@ -105,22 +105,63 @@ aws s3 sync s3://{stack-name}-output-{account-id} ./results
 ### Step 1: Install Prerequisites
 
 ```bash
-# Install Python 3.11+ (if not already installed)
+# Verify Python 3.11+ (required)
 python3 --version  # Should be 3.11 or higher
 
-# Install UV (Python package manager)
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Create and activate virtual environment (recommended)
+python3 -m venv venv
+source venv/bin/activate
 
-# Install AWS CLI
-brew install awscli  # macOS
-# or: pip install awscli
+# Install Node.js (required for AWS CDK CLI)
+# Ubuntu/Debian:
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
 
-# Install GitHub CLI
-brew install gh  # macOS
-# or: https://cli.github.com/
+# macOS:
+# brew install node
 
-# Install Docker Desktop
-# Download from: https://www.docker.com/products/docker-desktop/
+# Verify Node.js installation:
+node --version  # Should be v20.x or higher
+npm --version
+
+# Install AWS CDK CLI globally (required for deployment)
+# Note: CLI version doesn't need to match aws-cdk-lib Python package version
+sudo npm install -g aws-cdk@2.1100.3
+
+# Verify CDK installation:
+cdk --version  # Should be 2.1100.3
+
+# --- macOS (Homebrew) ---
+# brew install awscli
+# brew install gh
+# Install Docker Desktop from: https://www.docker.com/products/docker-desktop/
+
+# --- Ubuntu/Debian (apt) ---
+# sudo apt update
+# sudo apt install -y curl unzip git python3-venv
+#
+# AWS CLI:
+# Option A (pip, compatible with boto3/botocore): pip install awscli==1.44.16
+# Option B (v2, standalone - no Python dependencies):
+#   curl -L "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+#   unzip -q awscliv2.zip
+#   sudo ./aws/install
+#   rm -rf awscliv2.zip aws
+#
+# GitHub CLI:
+# sudo apt install -y gh
+# (If `gh` isn't available in your distro repos, install from https://cli.github.com/)
+#
+# Docker (No Docker Hub account needed - this project uses AWS ECR):
+# sudo apt install -y ca-certificates curl
+# sudo install -m 0755 -d /etc/apt/keyrings
+# sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+# sudo chmod a+r /etc/apt/keyrings/docker.asc
+# echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+# sudo apt update  # Required after adding Docker repository
+# sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+# sudo usermod -aG docker $USER  # Add your Linux user to docker group (avoid needing sudo)
+# newgrp docker  # Or log out and back in to apply group changes
 ```
 
 ### Step 2: Configure AWS
@@ -164,16 +205,23 @@ cd ..
 ### Step 5: Deploy Infrastructure to AWS
 
 ```bash
-# Make sure Docker Desktop is running first!
+# Make sure Docker is running first!
+# - macOS/Windows: Docker Desktop
+# - Linux: Docker Engine (dockerd)
 
-# Navigate to deployment directory
-cd deployment
+# Ensure you're in the project root directory (VMDataWheel/)
+# If you're in the deployment subdirectory, go back:
+# cd ..
 
 # Bootstrap CDK (first time only)
-uv run cdk bootstrap
+cd deployment
+cdk bootstrap
+cd ..
 
 # Deploy the infrastructure
-uv run cdk deploy
+cd deployment
+cdk deploy
+cd ..
 
 # Wait for deployment to complete (~5-10 minutes)
 # Save the outputs that appear at the end:
@@ -478,7 +526,9 @@ cd scripts
 
 **Error:** `Cannot connect to the Docker daemon`
 
-**Solution:** Start Docker Desktop application
+**Solution:**
+- macOS/Windows: Start Docker Desktop
+- Linux: Start Docker Engine (e.g., `sudo systemctl start docker`)
 
 ### Module Not Found
 
@@ -527,7 +577,14 @@ cd ..
 
 **Solution:**
 ```bash
-brew install node@20
+# macOS (Homebrew):
+# brew install node@20
+#
+# Ubuntu/Debian:
+# sudo apt update
+# sudo apt install -y nodejs npm
+#
+# If your distro Node is too old, prefer installing Node 20 via nvm or NodeSource.
 ```
 
 ---
@@ -540,17 +597,19 @@ brew install node@20
 # Make changes to deployment/cdk/stacks/pipeline_stack.py
 
 # Preview changes
-cd deployment && uv run cdk diff
+cd deployment
+cdk diff
 
 # Apply changes
-uv run cdk deploy
+cdk deploy
+cd ..
 ```
 
 ### Clean Up AWS Resources
 
 ```bash
 cd deployment
-uv run cdk destroy
+cdk destroy
 
 # This deletes:
 # - Lambda function
