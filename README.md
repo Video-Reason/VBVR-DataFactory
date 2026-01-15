@@ -149,9 +149,12 @@ When using `--output-format tar`, files are packaged into compressed archives:
 
 ```
 questions/
-└── G-1_object_trajectory_data-generator_00000-00099.tar.gz
+└── G-1_object_trajectory_data-generator/
+    ├── G-1_object_trajectory_data-generator_00000-00099.tar.gz
+    ├── G-1_object_trajectory_data-generator_00100-00199.tar.gz
+    └── ... (continues for all batches)
 
-# Extract to see:
+# Extract a tar to see:
 G-1_object_trajectory_data-generator/
 └── object_trajectory_task/
     ├── object_trajectory_0000/
@@ -299,9 +302,9 @@ cd ..
 **After deployment completes, you'll see:**
 ```
 Outputs:
-VmDatasetPipelineStack.QueueUrl = https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-queue
-VmDatasetPipelineStack.BucketName = vm-dataset-123456789-us-east-2
-VmDatasetPipelineStack.DlqUrl = https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-dlq
+VmDatasetPipelineStack.QueueUrl = xxx
+VmDatasetPipelineStack.BucketName = xxx
+VmDatasetPipelineStack.DlqUrl = xxx
 ```
 
 **Copy these values!** You'll need them in the next step.
@@ -313,11 +316,11 @@ VmDatasetPipelineStack.DlqUrl = https://sqs.us-east-2.amazonaws.com/123456789/vm
 cd ..
 
 # Set the queue URL and bucket from CDK outputs
-export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-queue"
-export OUTPUT_BUCKET="vm-dataset-123456789-us-east-2"
+export SQS_QUEUE_URL="xxx"
+export OUTPUT_BUCKET="xxx"
 
 # Optional: Set DLQ URL for monitoring failed tasks
-export SQS_DLQ_URL="https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-dlq"
+export SQS_DLQ_URL="xxx"
 
 # Optional: Save to .env file for persistence
 echo "SQS_QUEUE_URL=$SQS_QUEUE_URL" > .env

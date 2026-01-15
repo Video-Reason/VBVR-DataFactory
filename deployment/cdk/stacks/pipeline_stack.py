@@ -50,20 +50,20 @@ class PipelineStack(Stack):
             encryption=s3.BucketEncryption.S3_MANAGED,
         )
 
-        # Dead Letter Queue
+        # Dead Letter Queue with timestamp
         self.dlq = sqs.Queue(
             self,
             "DeadLetterQueue",
-            queue_name="vm-dataset-pipeline-dlq",
+            queue_name=f"vm-dataset-pipeline-dlq-{timestamp}",
             retention_period=Duration.days(14),
         )
 
-        # Main SQS Queue
+        # Main SQS Queue with timestamp
         # visibility_timeout should be slightly higher than Lambda timeout
         self.queue = sqs.Queue(
             self,
             "TaskQueue",
-            queue_name="vm-dataset-pipeline-queue",
+            queue_name=f"vm-dataset-pipeline-queue-{timestamp}",
             visibility_timeout=Duration.minutes(16),
             retention_period=Duration.days(4),
             dead_letter_queue=sqs.DeadLetterQueue(

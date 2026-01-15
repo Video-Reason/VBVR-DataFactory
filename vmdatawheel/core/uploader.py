@@ -116,6 +116,7 @@ class S3Uploader:
         Upload renamed samples to S3, either as individual files or as a tar archive.
         
         New structure: questions/{generator-name}/{task-name}_task/{task-name}_0000/files
+        Or for tar: questions/{generator-name}/{generator-name}_{start}-{end}.tar.gz
 
         Args:
             domain_task_dir: Path to the domain task directory (e.g., object_trajectory_task)
@@ -140,7 +141,7 @@ class S3Uploader:
             # Create one tar file per batch with proper internal structure
             end_index = start_index + len(renamed_samples) - 1
             tar_filename = f"{task_type}_{start_index:05d}-{end_index:05d}.tar.gz"
-            s3_key = f"questions/{tar_filename}"
+            s3_key = f"questions/{task_type}/{tar_filename}"
 
             self.create_and_upload_tar(
                 domain_task_dir, 
@@ -153,7 +154,7 @@ class S3Uploader:
             for sample_id in renamed_samples:
                 uploaded_samples.append({"sample_id": sample_id, "files_uploaded": 0})
 
-            logger.info(f"Created and uploaded tar with {len(renamed_samples)} samples to questions/{tar_filename}")
+            logger.info(f"Created and uploaded tar with {len(renamed_samples)} samples to questions/{task_type}/{tar_filename}")
             tar_file = tar_filename
         else:
             for sample_id in renamed_samples:

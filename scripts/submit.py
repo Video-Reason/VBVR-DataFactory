@@ -21,7 +21,10 @@ from vmdatawheel.sqs.submitter import TaskSubmitter
 
 def get_all_generators() -> list[str]:
     """List all generator directories."""
-    generators_path = Path(config.generators_path)
+    # Check local workspace path first, then config path
+    local_path = Path(__file__).parent.parent / "generators"
+    generators_path = local_path if local_path.exists() else Path(config.generators_path)
+    
     if not generators_path.exists():
         print(f"❌ Generators path not found: {generators_path}")
         return []
@@ -67,9 +70,14 @@ def main():
             sys.exit(1)
     else:
         generators = [args.generator]
-        gen_path = Path(config.generators_path) / args.generator
-        if not gen_path.exists():
-            print(f"⚠️  Warning: Generator directory not found: {gen_path}")
+        # Check local workspace path first, then config path
+        local_gen_path = Path(__file__).parent.parent / "generators" / args.generator
+        config_gen_path = Path(config.generators_path) / args.generator
+        
+        if not local_gen_path.exists() and not config_gen_path.exists():
+            print(f"⚠️  Warning: Generator directory not found:")
+            print(f"   - Local: {local_gen_path}")
+            print(f"   - Config: {config_gen_path}")
 
     # Generate random seed if not provided
     if args.seed is None:
