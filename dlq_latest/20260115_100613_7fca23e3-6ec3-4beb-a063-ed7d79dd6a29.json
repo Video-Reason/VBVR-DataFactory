@@ -1,0 +1,21 @@
+{
+  "message_id": "7fca23e3-6ec3-4beb-a063-ed7d79dd6a29",
+  "receipt_handle": "AQEBYZ6Hx7xr0393J0BUyfwsKDHzkoRH96FhShTkkGDnvWWoMFGXDu606MqmKyXZI7ehdfp1mZ2WSzGX9S8GnbF69YO1/C+RnZr5pToAoDJ/WlnKhPYXzzJJakq3pPpeCW5b09fhA3j2VhUiAogbW7mJQkbh+CAxyPGcudjOuBdSLn/kzfi1uap5tPwWtbFzDuZmG+1+PKYN89USm1t6xdXQ6fYMc8/44o/pNyDzJRnRCrl9Sh23hClGafzhogiYaSkkIwJuKHTXp0FblR3oeiyrLvjeQYPXPb67vWoRp2VU4Rc+5li1KyVsFPUJatoNtU4T4TtMGuT/4feDwUHjdEMRF6MY/G+Ei/CIQE9ak/78liLLWeuzHFsk85fzvXm1oLhlC0NVkKODgnJOKH4VXk4Ueke3S8bhc4d9cFTeXzYmxnnlef9G4glFOkAwPh3meh4J",
+  "timestamp": "1768467097346",
+  "receive_count": "3",
+  "attributes": {
+    "SenderId": "AIDA55QL52RUMLYQDWUZZ",
+    "ApproximateFirstReceiveTimestamp": "1768467386197",
+    "ApproximateReceiveCount": "3",
+    "SentTimestamp": "1768467097346",
+    "DeadLetterQueueSourceArn": "arn:aws:sqs:us-east-2:956728988776:vm-dataset-pipeline-queue-20260115-084225"
+  },
+  "body": {
+    "type": "G-41_grid_highest_cost_data-generator",
+    "num_samples": 100,
+    "start_index": 3100,
+    "seed": 435615201,
+    "output_format": "tar",
+    "output_bucket": null
+  }
+}
