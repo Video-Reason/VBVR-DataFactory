@@ -329,7 +329,7 @@ python scripts/monitor.py --watch --interval 10
 ### Generate Specific Generator Types
 
 ```bash
-# Only O- generators (puzzles, logic)
+# Only O- generators
 # First, edit scripts/download_all_repos.sh line 20:
 # Change to: grep -E '^O-[0-9]+_'
 cd scripts && ./download_all_repos.sh && cd ..
