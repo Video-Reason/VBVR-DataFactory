@@ -8,7 +8,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class VMDataWheelConfig(BaseSettings):
+class VBVRDataFactoryConfig(BaseSettings):
     """Global configuration - loads from environment variables or .env file."""
 
     # Required
@@ -33,5 +33,5 @@ class VMDataWheelConfig(BaseSettings):
 
 
 # Singleton instance
-config = VMDataWheelConfig()
+config = VBVRDataFactoryConfig()
 

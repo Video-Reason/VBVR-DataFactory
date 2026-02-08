@@ -1,12 +1,12 @@
-<h1 align="center" style="font-size: 3.5em; font-weight: bold;">VM Data Wheel</h1>
+<h1 align="center" style="font-size: 3.5em; font-weight: bold;">VBVR DataFactory</h1>
 
 <p align="center">
   <b>Scalable data generation for video reasoning models using AWS Lambda.</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/vm-dataset">
-    <img alt="vm-dataset generators" src="https://img.shields.io/badge/generators-vm--dataset-181717?logo=github&logoColor=white" />
+  <a href="https://github.com/VBVR-DataFactory">
+    <img alt="VBVR-DataFactory generators" src="https://img.shields.io/badge/generators-VBVR--DataFactory-181717?logo=github&logoColor=white" />
   </a>
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11+-3776ab?logo=python&logoColor=white" />
   <img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-green" />
@@ -15,12 +15,12 @@
 
 <p align="center">
   <a href="#one-click-deploy">Deploy</a> •
-  <a href="#what-is-vm-data-wheel">About</a> •
+  <a href="#what-is-vbvr-datafactory">About</a> •
   <a href="#-getting-started">Quick Start</a> •
   <a href="#-architecture-overview">Docs</a>
 </p>
 
-**VM Data Wheel** is a distributed data generation system built on AWS Lambda. It orchestrates 300+ generators from the [vm-dataset](https://github.com/vm-dataset) project to create high-quality training data for video reasoning models.
+**VBVR DataFactory** is a distributed data generation system built on AWS Lambda. It orchestrates 300+ generators from the [VBVR-DataFactory](https://github.com/VBVR-DataFactory) project to create high-quality training data for video reasoning models.
 
 
 ```mermaid
@@ -40,7 +40,7 @@ graph LR
 
 **Deploy to your AWS account in minutes — no local setup required.**
 
-<a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=vm-data-wheel&templateURL=https://raw.githubusercontent.com/Video-Reason/VMDataWheel/main/cloudformation/VmDatasetPipelineStack.template.json">
+<a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=vbvr-datafactory&templateURL=https://raw.githubusercontent.com/video-reason/VBVR-DataFactory/main/cloudformation/VBVRDataFactoryPipelineStack.template.json">
   <img src="https://img.shields.io/badge/🚀_DEPLOY_NOW-00C853?style=for-the-badge" alt="Deploy Now" />
 </a>
 
@@ -72,7 +72,7 @@ Go to AWS Console → Lambda → `{stack-name}-submit-tasks` → Test with:
 Or use AWS CLI:
 ```bash
 aws lambda invoke \
-  --function-name vm-data-wheel-submit-tasks \
+  --function-name vbvr-datafactory-submit-tasks \
   --payload '{"samples": 10000}' \
   response.json
 ```
@@ -247,8 +247,8 @@ aws configure
 
 ```bash
 # Clone the repository
-git clone https://github.com/Video-Reason/VMDataWheel
-cd VMDataWheel
+git clone https://github.com/video-reason/VBVR-DataFactory
+cd VBVR-DataFactory
 
 # Install the package with all dependencies
 pip install -e ".[dev,cdk]"
@@ -265,7 +265,7 @@ cd scripts
 ./download_all_repos.sh
 cd ..
 
-# This downloads all O- and G- generators from vm-dataset to ./generators/
+# This downloads all O- and G- generators from VBVR-DataFactory org to ./generators/
 ```
 
 ### Step 5: Deploy Infrastructure to AWS
@@ -275,7 +275,7 @@ cd ..
 # - macOS/Windows: Docker Desktop
 # - Linux: Docker Engine (dockerd)
 
-# Ensure you're in the project root directory (VMDataWheel/)
+# Ensure you're in the project root directory (VBVR-DataFactory/)
 # If you're in the deployment subdirectory, go back:
 # cd ..
 
@@ -299,9 +299,9 @@ cd ..
 **After deployment completes, you'll see:**
 ```
 Outputs:
-VmDatasetPipelineStack.QueueUrl = https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-queue
-VmDatasetPipelineStack.BucketName = vm-dataset-123456789-us-east-2
-VmDatasetPipelineStack.DlqUrl = https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-dlq
+VBVRDataFactoryPipelineStack.QueueUrl = https://sqs.us-east-2.amazonaws.com/123456789/vbvr-datafactory-pipeline-queue
+VBVRDataFactoryPipelineStack.BucketName = vbvr-datafactory-123456789-us-east-2
+VBVRDataFactoryPipelineStack.DlqUrl = https://sqs.us-east-2.amazonaws.com/123456789/vbvr-datafactory-pipeline-dlq
 ```
 
 **Copy these values!** You'll need them in the next step.
@@ -313,11 +313,11 @@ VmDatasetPipelineStack.DlqUrl = https://sqs.us-east-2.amazonaws.com/123456789/vm
 cd ..
 
 # Set the queue URL and bucket from CDK outputs
-export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-queue"
-export OUTPUT_BUCKET="vm-dataset-123456789-us-east-2"
+export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/123456789/vbvr-datafactory-pipeline-queue"
+export OUTPUT_BUCKET="vbvr-datafactory-123456789-us-east-2"
 
 # Optional: Set DLQ URL for monitoring failed tasks
-export SQS_DLQ_URL="https://sqs.us-east-2.amazonaws.com/123456789/vm-dataset-pipeline-dlq"
+export SQS_DLQ_URL="https://sqs.us-east-2.amazonaws.com/123456789/vbvr-datafactory-pipeline-dlq"
 
 # Optional: Save to .env file for persistence
 echo "SQS_QUEUE_URL=$SQS_QUEUE_URL" > .env
@@ -356,7 +356,7 @@ python scripts/monitor.py --watch
 
 ```bash
 # Once processing is complete, download the generated data
-aws s3 sync s3://vm-dataset-123456789-us-east-2/questions/ ./results/
+aws s3 sync s3://vbvr-datafactory-123456789-us-east-2/questions/ ./results/
 
 # Results structure (files format):
 # results/
@@ -371,7 +371,7 @@ aws s3 sync s3://vm-dataset-123456789-us-east-2/questions/ ./results/
 #         └── ...
 
 # For tar format, download and extract:
-# aws s3 cp s3://vm-dataset-123456789-us-east-2/questions/G-1_generator_00000-00099.tar.gz .
+# aws s3 cp s3://vbvr-datafactory-123456789-us-east-2/questions/G-1_generator_00000-00099.tar.gz .
 # tar -xzf G-1_generator_00000-00099.tar.gz
 ```
 
@@ -423,12 +423,12 @@ python scripts/monitor.py --watch
 
 ## 📦 Using as a Library
 
-You can import and use vmdatawheel in your own Python projects:
+You can import and use vbvrdatafactory in your own Python projects:
 
 ```python
-from vmdatawheel.core.models import TaskMessage
-from vmdatawheel.sqs.submitter import TaskSubmitter
-from vmdatawheel.core.config import config
+from vbvrdatafactory.core.models import TaskMessage
+from vbvrdatafactory.sqs.submitter import TaskSubmitter
+from vbvrdatafactory.core.config import config
 
 # Method 1: Submit using the submitter class
 submitter = TaskSubmitter(queue_url="https://sqs.us-east-2.amazonaws.com/...")
@@ -511,8 +511,8 @@ All fields are validated by Pydantic. Invalid messages are rejected immediately.
 ### Required Environment Variables
 
 ```bash
-export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/.../vm-dataset-pipeline-queue"
-export OUTPUT_BUCKET="vm-dataset-123456789-us-east-2"
+export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/.../vbvr-datafactory-pipeline-queue"
+export OUTPUT_BUCKET="vbvr-datafactory-123456789-us-east-2"
 ```
 
 ### Optional Environment Variables
@@ -578,7 +578,7 @@ python scripts/monitor.py --watch --interval 5
 cd scripts
 ./download_all_repos.sh
 
-# This downloads all O- and G- generators from vm-dataset organization
+# This downloads all O- and G- generators from vm-dataset org
 # To download specific types, edit line 20 of the script
 ```
 
@@ -630,7 +630,7 @@ aws configure
 
 **Solution:**
 ```bash
-export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/.../vm-dataset-pipeline-queue"
+export SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/.../vbvr-datafactory-pipeline-queue"
 ```
 
 Get this value from CDK outputs after deployment.
@@ -710,5 +710,5 @@ Apache-2.0
 ---
 
 <p align="center">
-  Part of the <a href="https://github.com/vm-dataset">vm-dataset</a> project
+  Part of the <a href="https://github.com/VBVR-DataFactory">VBVR-DataFactory</a> project
 </p>

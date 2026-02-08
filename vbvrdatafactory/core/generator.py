@@ -8,7 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from vmdatawheel.core.models import TaskMessage
+from vbvrdatafactory.core.models import TaskMessage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

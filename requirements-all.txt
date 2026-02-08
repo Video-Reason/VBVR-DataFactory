@@ -1,5 +1,5 @@
 # ===========================================
-# All dependencies for vm-dataset generators
+# All dependencies for VBVR-DataFactory generators
 # ===========================================
 
 # Core

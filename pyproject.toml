@@ -1,7 +1,7 @@
 [project]
-name = "vmdatawheel"
+name = "vbvrdatafactory"
 version = "1.0.0"
-description = "Distributed data generation system for vm-dataset generators using AWS Lambda"
+description = "Distributed data generation system for VBVR-DataFactory generators using AWS Lambda"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
@@ -56,4 +56,4 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["vmdatawheel"]
+packages = ["vbvrdatafactory"]

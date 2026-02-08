@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from vmdatawheel.sqs.client import SQSClient
+from vbvrdatafactory.sqs.client import SQSClient
 
 logger = logging.getLogger(__name__)
 

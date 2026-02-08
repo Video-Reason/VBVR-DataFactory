@@ -1,5 +1,5 @@
 #!/bin/bash
-# Collect all requirements.txt from vm-dataset repos
+# Collect all requirements.txt from VBVR-DataFactory repos
 
 set -e
 
@@ -9,7 +9,7 @@ if ! command -v gh &> /dev/null; then
     exit 1
 fi
 
-ORG="vm-dataset"
+ORG="VBVR-DataFactory"
 OUTPUT_FILE="../requirements-all.txt"
 TEMP_DIR=$(mktemp -d)
 

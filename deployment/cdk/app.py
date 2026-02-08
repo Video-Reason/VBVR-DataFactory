@@ -9,7 +9,7 @@ app = cdk.App()
 
 PipelineStack(
     app,
-    "VmDatasetPipelineStack",
+    "VBVRDataFactoryPipelineStack",
     env=cdk.Environment(
         account=app.node.try_get_context("account"),
         region=app.node.try_get_context("region") or "us-east-2",

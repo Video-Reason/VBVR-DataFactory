@@ -7,7 +7,7 @@ import logging
 import re
 from pathlib import Path
 
-from vmdatawheel.core.models import ValidationResult
+from vbvrdatafactory.core.models import ValidationResult
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

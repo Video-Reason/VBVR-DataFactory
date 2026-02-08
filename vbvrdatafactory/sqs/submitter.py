@@ -5,8 +5,8 @@ NO try-catch blocks - let exceptions bubble up.
 
 import logging
 
-from vmdatawheel.core.models import TaskMessage
-from vmdatawheel.sqs.client import SQSClient
+from vbvrdatafactory.core.models import TaskMessage
+from vbvrdatafactory.sqs.client import SQSClient
 
 logger = logging.getLogger(__name__)
 

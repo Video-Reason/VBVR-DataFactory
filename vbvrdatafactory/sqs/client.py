@@ -5,7 +5,7 @@ NO try-catch blocks - let boto3 exceptions bubble up.
 
 import boto3
 
-from vmdatawheel.core.config import config
+from vbvrdatafactory.core.config import config
 
 
 class SQSClient:

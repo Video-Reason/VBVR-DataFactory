@@ -11,12 +11,12 @@ import random
 import shutil
 from pathlib import Path
 
-from vmdatawheel.core.config import config
-from vmdatawheel.core.generator import GeneratorRunner
-from vmdatawheel.core.metrics import MetricsClient
-from vmdatawheel.core.models import TaskMessage, TaskResult
-from vmdatawheel.core.uploader import S3Uploader
-from vmdatawheel.core.validator import find_task_directories, rename_samples
+from vbvrdatafactory.core.config import config
+from vbvrdatafactory.core.generator import GeneratorRunner
+from vbvrdatafactory.core.metrics import MetricsClient
+from vbvrdatafactory.core.models import TaskMessage, TaskResult
+from vbvrdatafactory.core.uploader import S3Uploader
+from vbvrdatafactory.core.validator import find_task_directories, rename_samples
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

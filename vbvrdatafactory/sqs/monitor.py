@@ -3,8 +3,8 @@
 NO try-catch blocks - let exceptions bubble up.
 """
 
-from vmdatawheel.core.config import config
-from vmdatawheel.sqs.client import SQSClient
+from vbvrdatafactory.core.config import config
+from vbvrdatafactory.sqs.client import SQSClient
 
 
 class QueueMonitor:

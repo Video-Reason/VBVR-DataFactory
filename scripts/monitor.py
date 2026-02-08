@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Monitor SQS queue status using vmdatawheel package.
+"""Monitor SQS queue status using vbvrdatafactory package.
 
 Example:
     python scripts/monitor.py
@@ -16,8 +16,8 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from vmdatawheel.core.config import config
-from vmdatawheel.sqs.monitor import QueueMonitor
+from vbvrdatafactory.core.config import config
+from vbvrdatafactory.sqs.monitor import QueueMonitor
 
 
 def clear_screen():
@@ -59,7 +59,7 @@ def main():
             clear_screen()
 
         print("\n" + "=" * 60)
-        print("VMDataWheel - Queue Monitor")
+        print("VBVR-DataFactory - Queue Monitor")
         print("=" * 60)
         print(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 

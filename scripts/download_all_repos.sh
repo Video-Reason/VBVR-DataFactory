@@ -1,5 +1,5 @@
 #!/bin/bash
-# Download all generator repos from vm-dataset organization
+# Download all generator repos from VBVR-DataFactory organization
 
 set -e
 
@@ -9,7 +9,7 @@ if ! command -v gh &> /dev/null; then
     exit 1
 fi
 
-ORG="vm-dataset"
+ORG="VBVR-DataFactory"
 OUTPUT_DIR="../generators"
 
 mkdir -p "$OUTPUT_DIR"

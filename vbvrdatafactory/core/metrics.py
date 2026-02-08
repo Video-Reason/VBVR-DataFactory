@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class MetricsClient:
     """CloudWatch metrics client."""
 
-    def __init__(self, namespace: str = "VMDatasetPipeline"):
+    def __init__(self, namespace: str = "VBVRDataFactoryPipeline"):
         self.namespace = namespace
         self.cloudwatch = boto3.client("cloudwatch")
 
