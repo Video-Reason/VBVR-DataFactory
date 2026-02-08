@@ -7,7 +7,6 @@ Example:
 """
 
 import argparse
-import os
 import random
 import sys
 from pathlib import Path
@@ -79,7 +78,7 @@ def main():
     print("\n" + "=" * 70)
     print("VBVR-DataFactory - Task Submission")
     print("=" * 70)
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Generators: {len(generators)}")
     print(f"  Samples per generator: {args.samples:,}")
     print(f"  Batch size: {args.batch_size}")
@@ -102,17 +101,17 @@ def main():
     print("\n" + "=" * 70)
     print("Submission Summary")
     print("=" * 70)
-    print(f"\nResults:")
+    print("\nResults:")
     print(f"  Total tasks: {result['total_successful'] + result['total_failed']:,}")
     print(f"  ✅ Successful: {result['total_successful']:,}")
     print(f"  ❌ Failed: {result['total_failed']:,}")
-    print(f"\nGenerators:")
+    print("\nGenerators:")
     print(f"  Total: {result['total_generators']}")
     print(f"  ✅ Successful: {result['total_generators'] - len(result['failed_generators'])}")
     print(f"  ❌ Failed: {len(result['failed_generators'])}")
 
     if result['failed_generators']:
-        print(f"\nFailed generators:")
+        print("\nFailed generators:")
         for gen in result['failed_generators']:
             print(f"  - {gen}")
 

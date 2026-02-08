@@ -5,7 +5,6 @@ NO try-catch blocks - let boto3 exceptions bubble up for Lambda/SQS to handle re
 
 import logging
 import tarfile
-from datetime import datetime
 from pathlib import Path
 
 import boto3
@@ -114,7 +113,7 @@ class S3Uploader:
     ) -> tuple[list[dict], str | None]:
         """
         Upload renamed samples to S3, either as individual files or as a tar archive.
-        
+
         New structure: questions/{generator-name}/{task-name}_task/{task-name}_0000/files
 
         Args:
@@ -132,7 +131,7 @@ class S3Uploader:
         """
         uploaded_samples = []
         tar_file = None
-        
+
         # Extract task folder name (e.g., "object_trajectory_task")
         task_folder = domain_task_dir.name
 
@@ -143,8 +142,8 @@ class S3Uploader:
             s3_key = f"questions/{tar_filename}"
 
             self.create_and_upload_tar(
-                domain_task_dir, 
-                tar_filename, 
+                domain_task_dir,
+                tar_filename,
                 s3_key,
                 task_type,
                 task_folder
