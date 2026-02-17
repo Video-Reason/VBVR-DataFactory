@@ -7,9 +7,12 @@ Example:
 """
 
 import argparse
+import math
 import random
 import sys
 from pathlib import Path
+
+from tqdm import tqdm
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -48,6 +51,7 @@ def main():
         "--output-format", choices=["files", "tar"], default="files", help='Output format: "files" (default) or "tar"'
     )
     parser.add_argument("--bucket", help="Override S3 bucket for output")
+    parser.add_argument("--dedup", action="store_true", help="Enable DDB dedup mode")
 
     args = parser.parse_args()
 
@@ -84,9 +88,25 @@ def main():
     print(f"  Batch size: {args.batch_size}")
     print(f"  Random seed: {args.seed}")
     print(f"  Queue URL: {config.sqs_queue_url}")
+    print(f"  Dedup: {args.dedup}")
     print()
 
     submitter = TaskSubmitter(config.sqs_queue_url)
+
+    # Calculate total tasks for progress bar
+    tasks_per_generator = math.ceil(args.samples / args.batch_size)
+    total_tasks = tasks_per_generator * len(generators)
+
+    pbar = tqdm(total=total_tasks, desc="Sending to SQS", unit="task")
+
+    total_failed_count = 0
+
+    def on_batch_sent(successful: int, failed: int) -> None:
+        nonlocal total_failed_count
+        total_failed_count += failed
+        pbar.update(successful + failed)
+        if total_failed_count:
+            pbar.set_postfix(failed=total_failed_count)
 
     result = submitter.submit_tasks(
         generators=generators,
@@ -95,7 +115,11 @@ def main():
         seed=args.seed,
         output_format=args.output_format,
         output_bucket=args.bucket,
+        dedup=args.dedup,
+        on_batch_sent=on_batch_sent,
     )
+
+    pbar.close()
 
     # Print results
     print("\n" + "=" * 70)
@@ -103,12 +127,12 @@ def main():
     print("=" * 70)
     print("\nResults:")
     print(f"  Total tasks: {result['total_successful'] + result['total_failed']:,}")
-    print(f"  ✅ Successful: {result['total_successful']:,}")
-    print(f"  ❌ Failed: {result['total_failed']:,}")
+    print(f"  Successful: {result['total_successful']:,}")
+    print(f"  Failed: {result['total_failed']:,}")
     print("\nGenerators:")
     print(f"  Total: {result['total_generators']}")
-    print(f"  ✅ Successful: {result['total_generators'] - len(result['failed_generators'])}")
-    print(f"  ❌ Failed: {len(result['failed_generators'])}")
+    print(f"  Successful: {result['total_generators'] - len(result['failed_generators'])}")
+    print(f"  Failed: {len(result['failed_generators'])}")
 
     if result['failed_generators']:
         print("\nFailed generators:")

@@ -20,6 +20,9 @@ from aws_cdk import (
     aws_lambda as lambda_,
 )
 from aws_cdk import (
+    aws_dynamodb as dynamodb,
+)
+from aws_cdk import (
     aws_s3 as s3,
 )
 from aws_cdk import (
@@ -72,6 +75,21 @@ class PipelineStack(Stack):
             ),
         )
 
+        # DynamoDB table for param_hash dedup
+        self.dedup_table = dynamodb.Table(
+            self,
+            "DedupTable",
+            table_name="vbvr-param-hash",
+            partition_key=dynamodb.Attribute(
+                name="generator_name", type=dynamodb.AttributeType.STRING
+            ),
+            sort_key=dynamodb.Attribute(
+                name="param_hash", type=dynamodb.AttributeType.STRING
+            ),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=RemovalPolicy.RETAIN,
+        )
+
         # Lambda configuration from context
         lambda_memory = self.node.try_get_context("lambdaMemoryMB") or 3072
         lambda_timeout = self.node.try_get_context("lambdaTimeoutMinutes") or 15
@@ -101,11 +119,13 @@ class PipelineStack(Stack):
             environment={
                 "OUTPUT_BUCKET": self.output_bucket.bucket_name,
                 "GENERATORS_PATH": "/opt/generators",
+                "DEDUP_TABLE_NAME": self.dedup_table.table_name,
             },
         )
 
         # Grant Lambda permissions
         self.output_bucket.grant_read_write(self.lambda_function)
+        self.dedup_table.grant_read_write_data(self.lambda_function)
 
         # Grant S3 write permission to all buckets
         self.lambda_function.add_to_role_policy(
@@ -162,4 +182,10 @@ class PipelineStack(Stack):
             "LambdaFunctionName",
             value=self.lambda_function.function_name,
             description="Lambda function name",
+        )
+        CfnOutput(
+            self,
+            "DedupTableName",
+            value=self.dedup_table.table_name,
+            description="DynamoDB dedup table name",
         )

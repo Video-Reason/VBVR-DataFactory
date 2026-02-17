@@ -4,6 +4,7 @@ NO try-catch blocks - let exceptions bubble up.
 """
 
 import logging
+from typing import Callable
 
 from vbvrdatafactory.core.models import TaskMessage
 from vbvrdatafactory.sqs.client import SQSClient
@@ -25,6 +26,7 @@ class TaskSubmitter:
         seed: int,
         output_format: str = "files",
         output_bucket: str | None = None,
+        dedup: bool = False,
     ) -> list[TaskMessage]:
         """
         Create task messages for a generator.
@@ -36,6 +38,7 @@ class TaskSubmitter:
             seed: Random seed
             output_format: Output format - "files" or "tar"
             output_bucket: Optional S3 bucket override
+            dedup: Enable DDB dedup mode
 
         Returns:
             List of TaskMessage objects
@@ -53,6 +56,7 @@ class TaskSubmitter:
                 seed=message_seed,
                 output_format=output_format,
                 output_bucket=output_bucket,
+                dedup=dedup,
             )
             messages.append(task)
 
@@ -66,6 +70,8 @@ class TaskSubmitter:
         seed: int,
         output_format: str = "files",
         output_bucket: str | None = None,
+        dedup: bool = False,
+        on_batch_sent: Callable[[int, int], None] | None = None,
     ) -> dict:
         """
         Submit tasks for multiple generators.
@@ -77,6 +83,8 @@ class TaskSubmitter:
             seed: Random seed
             output_format: Output format - "files" or "tar"
             output_bucket: Optional S3 bucket override
+            dedup: Enable DDB dedup mode
+            on_batch_sent: Callback(successful, failed) called after each SQS batch
 
         Returns:
             Dictionary with submission statistics
@@ -91,7 +99,7 @@ class TaskSubmitter:
         for generator in generators:
             # Create messages with Pydantic validation
             tasks = self.create_task_messages(
-                generator, total_samples, batch_size, seed, output_format, output_bucket
+                generator, total_samples, batch_size, seed, output_format, output_bucket, dedup
             )
 
             # Convert to SQS format and send in batches of 10
@@ -112,6 +120,9 @@ class TaskSubmitter:
                 successful, failed = self.client.send_batch(entries)
                 gen_successful += successful
                 gen_failed += failed
+
+                if on_batch_sent:
+                    on_batch_sent(successful, failed)
 
                 logger.info(
                     f"Generator {generator} batch {batch_idx + 1}/{len(batches)}: "
