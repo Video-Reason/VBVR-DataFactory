@@ -30,6 +30,7 @@ graph LR
     C --> D[Generator Lambda]
     C -.-> E[(DLQ)]
     D --> F[(S3 Bucket)]
+    D --> G[(DynamoDB)]
 ```
 
 ---
@@ -46,9 +47,9 @@ graph LR
 
 **🔜 Coming Soon**
 
-| S3 Bucket | SQS Queue | Lambda | DLQ |
-|:---------:|:---------:|:------:|:---:|
-| Output storage | Task queue | 300+ generators | Auto-retry |
+| S3 Bucket | SQS Queue | Lambda | DLQ | DynamoDB |
+|:---------:|:---------:|:------:|:---:|:--------:|
+| Output storage | Task queue | 300+ generators | Auto-retry | Dedup |
 
 </div>
 
@@ -112,36 +113,57 @@ All generated data follows this standardized structure:
 questions/
 ├── G-1_object_trajectory_data-generator/
 │   └── object_trajectory_task/
-│       ├── object_trajectory_0000/
+│       ├── object_trajectory_00000000/
 │       │   ├── first_frame.png
 │       │   ├── final_frame.png
 │       │   ├── ground_truth.mp4
+│       │   ├── metadata.json
 │       │   └── prompt.txt
-│       ├── object_trajectory_0001/
-│       │   └── [same 4 files]
-│       └── ... (continues with _0002, _0003, etc.)
+│       ├── object_trajectory_00000001/
+│       │   └── [same 5 files]
+│       └── ... (continues with _00000002, _00000003, etc.)
 │
 ├── G-2_another_generator/
 │   └── another_task/
-│       ├── another_0000/
+│       ├── another_00000000/
 │       └── ...
 │
 └── O-41_nonogram_data-generator/
     └── nonogram_task/
-        ├── nonogram_0000/
+        ├── nonogram_00000000/
         │   ├── first_frame.png
         │   ├── final_frame.png
         │   ├── ground_truth.mp4
+        │   ├── metadata.json
         │   └── prompt.txt
-        └── ... (continues with _0001, _0002, etc.)
+        └── ... (continues with _00000001, _00000002, etc.)
 ```
 
 **Structure breakdown:**
 - **Root:** `questions/` - All generated data
 - **Generator:** `{G|O}-{N}_{task-name}_data-generator/` - Each generator has its own folder
 - **Task:** `{task-name}_task/` - Task-specific directory
-- **Instances:** `{task-name}_0000/` - Individual samples with 4-digit zero-padded indices
-- **Files:** Each instance contains 2-4 files (first_frame.png, prompt.txt are required; final_frame.png and ground_truth.mp4 are optional)
+- **Instances:** `{task-name}_00000000/` - Individual samples with 8-digit zero-padded indices
+- **Files:** Each instance contains 2-5 files (first_frame.png, prompt.txt are required; final_frame.png, ground_truth.mp4, and metadata.json are optional)
+
+**metadata.json format:**
+
+```json
+{
+  "task_id": "object_trajectory_00000000",
+  "generator": "G-1_object_trajectory_data-generator",
+  "timestamp": "2026-02-17T06:15:55.000000",
+  "parameters": { ... },
+  "param_hash": "cdba87435dd16831",
+  "generation": {
+    "seed": 12345,
+    "git": { "commit": "...", "branch": "main", "repo": "..." }
+  }
+}
+```
+
+- `param_hash`: SHA256 first 16 hex chars of task parameters (excluding seed), used for deduplication
+- `parameters`: The generation parameters for reproducibility
 
 **Tar Archive Format:**
 
@@ -154,10 +176,10 @@ questions/
 # Extract to see:
 G-1_object_trajectory_data-generator/
 └── object_trajectory_task/
-    ├── object_trajectory_0000/
+    ├── object_trajectory_00000000/
     │   └── [files]
-    ├── object_trajectory_0001/
-    └── ... (through _0099)
+    ├── object_trajectory_00000001/
+    └── ... (through _00000099)
 ```
 
 - **Tar files:** `{generator}_{start-index}-{end-index}.tar.gz`
@@ -294,6 +316,7 @@ cd ..
 #   - QueueUrl
 #   - BucketName
 #   - DlqUrl
+#   - DedupTableName
 ```
 
 **After deployment completes, you'll see:**
@@ -302,6 +325,7 @@ Outputs:
 VBVRDataFactoryPipelineStack.QueueUrl = https://sqs.us-east-2.amazonaws.com/123456789/vbvr-datafactory-pipeline-queue
 VBVRDataFactoryPipelineStack.BucketName = vbvr-datafactory-123456789-us-east-2
 VBVRDataFactoryPipelineStack.DlqUrl = https://sqs.us-east-2.amazonaws.com/123456789/vbvr-datafactory-pipeline-dlq
+VBVRDataFactoryPipelineStack.DedupTableName = vbvr-param-hash
 ```
 
 **Copy these values!** You'll need them in the next step.
@@ -362,7 +386,7 @@ aws s3 sync s3://vbvr-datafactory-123456789-us-east-2/questions/ ./results/
 # results/
 # └── G-1_object_trajectory_data-generator/
 #     └── object_trajectory_task/
-#         ├── object_trajectory_0000/
+#         ├── object_trajectory_00000000/
 #         │   ├── first_frame.png
 #         │   ├── final_frame.png
 #         │   ├── prompt.txt
@@ -388,6 +412,14 @@ python scripts/submit.py \
   --samples 10000 \
   --batch-size 100 \
   --seed 42
+
+# With deduplication (recommended for large runs)
+python scripts/submit.py \
+  --generator all \
+  --samples 20000 \
+  --batch-size 10 \
+  --dedup \
+  --bucket my-output-bucket
 
 # Monitor progress
 python scripts/monitor.py --watch --interval 10
@@ -466,7 +498,8 @@ When you run `cdk deploy`, it creates:
 2. **SQS Queue** - Distributes tasks to workers
 3. **Lambda Function** - Runs generators (3GB memory, 15min timeout)
 4. **Dead Letter Queue** - Captures failed tasks for retry
-5. **IAM Roles** - Permissions for Lambda to access S3/SQS
+5. **DynamoDB Table** - Deduplication via param_hash (optional, enabled with `--dedup`)
+6. **IAM Roles** - Permissions for Lambda to access S3/SQS/DynamoDB
 
 ### How It Works
 
@@ -480,6 +513,7 @@ When you run `cdk deploy`, it creates:
 4. Lambda:
    - Validates message with Pydantic
    - Runs generator script
+   - (If --dedup) Checks param_hash against DynamoDB, regenerates duplicates
    - Uploads results to S3
    - Deletes message from queue
    ↓
@@ -553,6 +587,7 @@ python scripts/submit.py --generator GENERATOR_NAME --samples NUM_SAMPLES
 #   --seed, -s         Random seed (optional)
 #   --output-format    "files" or "tar" (default: files)
 #   --bucket           Override output bucket (optional)
+#   --dedup            Enable DynamoDB deduplication (optional)
 
 # Examples:
 python scripts/submit.py -g all -n 10000
