@@ -1,6 +1,12 @@
 <h1 align="center" style="font-size: 3.5em; font-weight: bold;">VBVR DataFactory</h1>
 
 <p align="center">
+  <a href="https://video-reason.com/">
+    <img src="assets/vbvr-logo.svg" alt="Very Big Video Reasoning logo" width="180" />
+  </a>
+</p>
+
+<p align="center">
   <b>Scalable data generation for video reasoning models using AWS Lambda.</b>
 </p>
 
@@ -21,6 +27,8 @@
 </p>
 
 **VBVR DataFactory** is a distributed data generation system built on AWS Lambda. It orchestrates 300+ generators from the [VBVR-DataFactory](https://github.com/VBVR-DataFactory) project to create high-quality training data for video reasoning models.
+
+This project is part of the [Very Big Video Reasoning (VBVR)](https://video-reason.com/) initiative.
 
 
 ```mermaid
@@ -745,5 +753,15 @@ Apache-2.0
 ---
 
 <p align="center">
-  Part of the <a href="https://github.com/VBVR-DataFactory">VBVR-DataFactory</a> project
+  Part of the <a href="https://video-reason.com/">Very Big Video Reasoning (VBVR)</a> project
 </p>
+
+### Citation
+
+```bibtex
+@article{vbvr2026,
+  title={A Very Big Video Reasoning Suite},
+  author={Wang, Maijunxian and Wang, Ruisi and Lin, Juyi and Ji, Ran and Wiedemer, Thaddäus and Gao, Qingying and Luo, Dezhi and Qian, Yaoyao and Huang, Lianyu and Hong, Zelong and Ge, Jiahui and Ma, Qianli and He, Hang and Zhou, Yifan and Guo, Lingzi and Mei, Lantao and Li, Jiachen and Xing, Hanwen and Zhao, Tianqi and Yu, Fengyuan and Xiao, Weihang and Jiao, Yizheng and Hou, Jianheng and Zhang, Danyang and Xu, Pengcheng and Zhong, Boyang and Zhao, Zehong and Fang, Gaoyun and Kitaoka, John and Xu, Yile and Xu, Hua and Blacutt, Kenton and Nguyen, Tin and Song, Siyuan and Sun, Haoran and Wen, Shaoyue and He, Linyang and Wang, Runming and Wang, Yanzhi and Yang, Mengyue and Ma, Ziqiao and Millière, Raphaël and Shi, Freda and Vasconcelos, Nuno and Khashabi, Daniel and Yuille, Alan and Du, Yilun and Liu, Ziming and Lin, Dahua and Liu, Ziwei and Kumar, Vikash and Li, Yijiang and Yang, Lei and Cai, Zhongang and Deng, Hokin},
+  year={2026}
+}
+```

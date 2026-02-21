@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-labelledby="title desc">
+  <title id="title">VBVR Logo</title>
+  <desc id="desc">Stylized VBVR text logo in black with a play icon.</desc>
+  <rect width="320" height="320" fill="#ffffff"/>
+  <g fill="#000000" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="128" letter-spacing="-8">
+    <text x="28" y="135">VB</text>
+    <text x="28" y="275">VR</text>
+  </g>
+  <polygon points="103,56 127,72 103,88" fill="#000000"/>
+</svg>
