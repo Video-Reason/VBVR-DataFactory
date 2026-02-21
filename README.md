@@ -26,7 +26,7 @@
   <a href="#-architecture-overview">Docs</a>
 </p>
 
-**VBVR DataFactory** is a distributed data generation system built on AWS Lambda. It orchestrates 300+ generators from the [VBVR-DataFactory](https://github.com/VBVR-DataFactory) project to create high-quality training data for video reasoning models.
+**VBVR DataFactory** is a distributed data generation system built on AWS Lambda. It orchestrates 300+ generators from the [VBVR-DataFactory](https://github.com/VBVR-DataFactory) Github Organization to create high-quality training data for video reasoning models.
 
 This project is part of the [Very Big Video Reasoning (VBVR)](https://video-reason.com/) initiative.
 
