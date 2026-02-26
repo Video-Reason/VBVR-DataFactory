@@ -3,6 +3,9 @@ FROM public.ecr.aws/lambda/python:3.11
 # System dependencies (required by cairosvg and for building packages)
 RUN yum install -y cairo pango gcc gcc-c++ make python3-devel tar xz
 
+# Bundle fonts directly - guaranteed paths regardless of OS/yum availability
+COPY fonts/ /opt/fonts/
+
 # Install ffmpeg (static build for Amazon Linux 2)
 RUN curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o /tmp/ffmpeg.tar.xz && \
     tar -xf /tmp/ffmpeg.tar.xz -C /tmp && \
